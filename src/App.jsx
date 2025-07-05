@@ -10,7 +10,7 @@ import OTPVerification from './pages/OTPVerification';
 
 function App() {
   return (
-    <Router basename="/UnionCatalog">
+    <Router>
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/Login" element={<Login />} />
