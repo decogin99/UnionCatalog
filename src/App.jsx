@@ -10,8 +10,9 @@ import OTPVerification from './pages/OTPVerification';
 
 function App() {
   return (
-    <Router>
+    <Router basename="/UnionCatalog">
       <Routes>
+        <Route path="/" element={<LandingPage />} />
         <Route path="/Login" element={<Login />} />
         <Route path="/OTP-Verification" element={<OTPVerification />} />
         <Route path="/Signup" element={<Signup />} />
@@ -20,7 +21,6 @@ function App() {
         <Route path="/Profile" element={<Profile />} />
         <Route path="/EnglishBooks" element={<Books />} />
         <Route path="/MyanmarBooks" element={<Books />} />
-        <Route path="/" element={<LandingPage />} />
       </Routes>
     </Router>
   );

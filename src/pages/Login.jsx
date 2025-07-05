@@ -24,7 +24,7 @@ const Login = () => {
             <div className="bg-white p-8 rounded-lg shadow-lg w-96 max-w-[95%] mx-2">
                 <div className="text-center mb-5">
                     <h1 className="text-3xl font-bold text-[#2E6BAA] mb-2">Welcome to</h1>
-                    <h2 className="text-2xl font-semibold text-[#2E6BAA]">Myanma Union Catalog Portal</h2>
+                    <h2 className="text-2xl font-semibold text-[#2E6BAA]">Myanmar Union Catalog Portal</h2>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4 font-medium">

@@ -6,7 +6,7 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(),
   tailwindcss()],
-  base: './',
+  base: '/UnionCatalog/',
   server: {
     host: '0.0.0.0',
     port: 5173, // or whatever port you're using
