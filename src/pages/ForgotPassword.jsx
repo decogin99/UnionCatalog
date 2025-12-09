@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { FiUnlock, FiLogIn } from 'react-icons/fi';
 
 const ForgotPassword = () => {
     const [email, setEmail] = useState('');
@@ -12,31 +13,32 @@ const ForgotPassword = () => {
     };
 
     return (
-        <div className="fixed inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[#0C2D57] via-[#1B4B8A] to-[#2E6BAA]">
-            <div className="bg-white p-8 rounded-lg shadow-lg w-96">
-                <div className="text-center mb-5">
-                    <h1 className="text-3xl font-bold text-[#2E6BAA] mb-2">Forgot Password</h1>
-                    <p className="text-gray-600">
-                        Enter your email address and we'll send you instructions to reset your password.
-                    </p>
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0C2D57] via-[#1B4B8A] to-[#2E6BAA] px-4 sm:px-6">
+            <div className="bg-white/95 backdrop-blur-sm p-8 sm:p-10 rounded-2xl shadow-xl w-full max-w-md ring-1 ring-white/50">
+                <div className="text-center mb-6">
+                    <div className="inline-flex items-center justify-center rounded-full bg-gradient-to-br from-[#1B4B8A] to-[#2E6BAA] text-white w-12 h-12 mb-3 shadow-md">
+                        <FiUnlock size={22} />
+                    </div>
+                    <h1 className="text-3xl sm:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#1B4B8A] to-[#2E6BAA]">Reset Password</h1>
+                    <p className="mt-2 text-sm sm:text-base text-[#1B4B8A]">Enter your email to receive reset instructions</p>
                 </div>
 
                 {!isSubmitted ? (
-                    <form onSubmit={handleSubmit} className="space-y-4 font-medium">
+                    <form onSubmit={handleSubmit} className="space-y-6 font-medium">
                         <div>
                             <input
                                 type="email"
-                                placeholder="Email"
+                                placeholder="example@gmail.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]"
+                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]"
                                 required
                             />
                         </div>
 
                         <button
                             type="submit"
-                            className="w-full bg-[#2E6BAA] text-white py-2 rounded-lg hover:bg-opacity-90 transition duration-300"
+                            className="w-full bg-[#2E6BAA] text-white py-3 rounded-xl hover:bg-opacity-90 transition duration-300 shadow-md"
                         >
                             Send Reset Instructions
                         </button>
@@ -54,9 +56,10 @@ const ForgotPassword = () => {
                         </div>
                         <Link
                             to="/Login"
-                            className="block text-[#2E6BAA] hover:underline"
+                            className="inline-flex items-center gap-2 text-[#2E6BAA] hover:underline font-medium"
                         >
-                            Return to Sign In
+                            <FiLogIn size={16} />
+                            Back to Sign In
                         </Link>
                     </div>
                 )}

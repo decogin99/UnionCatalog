@@ -1,10 +1,14 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FiShield } from 'react-icons/fi';
+import { useAuth } from '../context/AuthProvider.jsx';
+import { authService } from '../services/authService';
 
 const OTPVerification = () => {
     const [otp, setOtp] = useState(['', '', '', '', '', '']);
     const [error, setError] = useState('');
     const navigate = useNavigate();
+    const { setUser } = useAuth();
 
     const handleChange = (element, index) => {
         if (isNaN(element.value)) return false;
@@ -59,17 +63,30 @@ const OTPVerification = () => {
         }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         const otpValue = otp.join('');
-        if (otpValue === '000000') {
-            setError('');
-            navigate('/Dashboard');
-        } else {
-            setError('Invalid OTP code. Please try again.');
-            // Clear OTP fields on error
+        const pendingUsername = sessionStorage.getItem('pendingUsername') || '';
+        const pendingUserType = sessionStorage.getItem('pendingUserType') || 'Library';
+        try {
+            const res = await authService.verifyOTP(pendingUsername, otpValue);
+            if (res?.success) {
+                setError('');
+                setUser({ email: pendingUsername, role: pendingUserType });
+                sessionStorage.removeItem('pendingUsername');
+                sessionStorage.removeItem('pendingUserType');
+                navigate(pendingUserType === 'SuperAdmin' ? '/Admin/Registrations' : '/Dashboard');
+            } else {
+                setError(res?.message || 'Invalid OTP code. Please try again.');
+                setOtp(['', '', '', '', '', '']);
+                const firstInput = document.querySelector('input');
+                if (firstInput) {
+                    firstInput.focus();
+                }
+            }
+        } catch (err) {
+            setError(err?.message || 'Verification failed. Please try again.');
             setOtp(['', '', '', '', '', '']);
-            // Focus first input
             const firstInput = document.querySelector('input');
             if (firstInput) {
                 firstInput.focus();
@@ -78,14 +95,17 @@ const OTPVerification = () => {
     };
 
     return (
-        <div className="fixed inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[#0C2D57] via-[#1B4B8A] to-[#2E6BAA]">
-            <div className="bg-white p-8 rounded-lg shadow-lg w-96 max-w-[95%] mx-2">
-                <div className="text-center mb-4">
-                    <h1 className="text-2xl font-bold text-[#2E6BAA] mb-2">OTP Verification</h1>
-                    <p className="text-gray-600 font-medium">Enter the 6-digit code sent to your email</p>
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0C2D57] via-[#1B4B8A] to-[#2E6BAA] px-4 sm:px-6">
+            <div className="bg-white/95 backdrop-blur-sm p-8 sm:p-10 rounded-2xl shadow-xl w-full max-w-md ring-1 ring-white/50">
+                <div className="text-center mb-6">
+                    <div className="inline-flex items-center justify-center rounded-full bg-gradient-to-br from-[#1B4B8A] to-[#2E6BAA] text-white w-12 h-12 mb-3 shadow-md">
+                        <FiShield size={22} />
+                    </div>
+                    <h1 className="text-3xl sm:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#1B4B8A] to-[#2E6BAA]">OTP Verification</h1>
+                    <p className="mt-2 text-sm sm:text-base text-[#1B4B8A]">Enter the 6-digit code sent to your email</p>
                 </div>
 
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmit} className="space-y-6 font-medium">
                     {error && (
                         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
                             <span className="block sm:inline">{error}</span>
@@ -104,7 +124,7 @@ const OTPVerification = () => {
                                     onChange={(e) => handleChange(e.target, index)}
                                     onKeyDown={(e) => handleKeyDown(e, index)}
                                     onFocus={(e) => e.target.select()}
-                                    className="w-full h-12 text-center text-xl font-semibold border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E6BAA] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                    className="w-full h-14 text-center text-2xl font-semibold bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E6BAA] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                 />
                             </div>
                         ))}
@@ -112,7 +132,7 @@ const OTPVerification = () => {
 
                     <button
                         type="submit"
-                        className="w-full bg-[#2E6BAA] text-white py-3 rounded-lg hover:bg-opacity-90 transition duration-300 font-medium"
+                        className="w-full bg-[#2E6BAA] text-white py-3 rounded-xl hover:bg-opacity-90 transition duration-300 font-medium shadow-md"
                     >
                         Verify
                     </button>
