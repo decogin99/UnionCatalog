@@ -21,6 +21,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     { path: "/EnglishBooks", icon: <FiBook size={15} />, label: "English Books" },
     { path: "/MyanmarBooks", icon: <FiBook size={15} />, label: "Myanmar Books" },
     { path: "/Profile", icon: <FiUser size={15} />, label: "Profile" },
+    { path: "/Settings", icon: <FiSettings size={15} />, label: "Settings" },
   ];
   const menuItems = [
     ...baseItems,

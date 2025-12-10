@@ -140,6 +140,12 @@ const Login = () => {
             <Link to="/Signup" className="inline-flex items-center gap-2 text-[#2E6BAA] hover:underline font-medium">
               Register
             </Link>
+            <div className="mt-2">
+              <span className="text-gray-600">Already registered? </span>
+              <Link to="/Signup?check=true" className="inline-flex items-center gap-2 text-[#2E6BAA] hover:underline font-medium">
+                Check
+              </Link>
+            </div>
           </div>
         </form>
       </div>

@@ -7,6 +7,7 @@ import { authService } from '../services/authService';
 const OTPVerification = () => {
     const [otp, setOtp] = useState(['', '', '', '', '', '']);
     const [error, setError] = useState('');
+    const [isVerifying, setIsVerifying] = useState(false);
     const navigate = useNavigate();
     const { setUser } = useAuth();
 
@@ -65,17 +66,32 @@ const OTPVerification = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError('');
         const otpValue = otp.join('');
+        if (otpValue.length !== 6 || otp.some(d => d === '')) {
+            setError('Please enter the 6-digit OTP code.');
+            const inputs = document.querySelectorAll('input');
+            const firstEmptyIndex = otp.findIndex(d => d === '');
+            const target = firstEmptyIndex >= 0 ? inputs[firstEmptyIndex] : inputs[0];
+            if (target) { target.focus(); }
+            return;
+        }
+        setIsVerifying(true);
         const pendingUsername = sessionStorage.getItem('pendingUsername') || '';
         const pendingUserType = sessionStorage.getItem('pendingUserType') || 'Library';
         try {
-            const res = await authService.verifyOTP(pendingUsername, otpValue);
+            const res = await authService.verifyOTP(pendingUsername, otpValue, pendingUserType);
             if (res?.success) {
                 setError('');
                 setUser({ email: pendingUsername, role: pendingUserType });
                 sessionStorage.removeItem('pendingUsername');
                 sessionStorage.removeItem('pendingUserType');
-                navigate(pendingUserType === 'SuperAdmin' ? '/Admin/Registrations' : '/Dashboard');
+                const routeByType = {
+                  SuperAdmin: '/Admin/Registrations',
+                  Admin: '/Admin',
+                  Library: '/Dashboard',
+                };
+                navigate(routeByType[pendingUserType] || '/Dashboard');
             } else {
                 setError(res?.message || 'Invalid OTP code. Please try again.');
                 setOtp(['', '', '', '', '', '']);
@@ -91,6 +107,8 @@ const OTPVerification = () => {
             if (firstInput) {
                 firstInput.focus();
             }
+        } finally {
+            setIsVerifying(false);
         }
     };
 
@@ -112,6 +130,8 @@ const OTPVerification = () => {
                         </div>
                     )}
 
+                    <div className="rounded-xl px-4 py-3 text-xs bg-yellow-50 text-yellow-700 ring-1 ring-yellow-200 mb-4">OTP will expire after 5 minutes</div>
+
                     <div className="flex justify-center gap-2 mb-6">
                         {otp.map((digit, index) => (
                             <div key={index} className="w-12">
@@ -132,9 +152,17 @@ const OTPVerification = () => {
 
                     <button
                         type="submit"
-                        className="w-full bg-[#2E6BAA] text-white py-3 rounded-xl hover:bg-opacity-90 transition duration-300 font-medium shadow-md"
+                        disabled={isVerifying || otp.some(d => d === '')}
+                        className="w-full bg-[#2E6BAA] text-white py-3 rounded-xl hover:bg-opacity-90 transition duration-300 font-medium shadow-md flex items-center justify-center disabled:opacity-70"
                     >
-                        Verify
+                        {isVerifying ? (
+                          <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0a12 12 0 100 24v-4a8 8 0 01-8-8z"></path>
+                          </svg>
+                        ) : (
+                          'Verify'
+                        )}
                     </button>
 
                     <div className="text-center mt-4">

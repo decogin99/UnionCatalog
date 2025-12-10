@@ -13,6 +13,52 @@ export const adminService = {
       throw error.response?.data || error.message;
     }
   },
+  
+  approveLibrary: async (publicId) => {
+    try {
+      const response = await api.post("admin/approve-library", null, {
+        params: { publicId : publicId },
+      });
+      return response;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  declineRegistration: async (id, note = "") => {
+    try {
+      const res = await api.post(`admin/decline-library`, null, {
+        params: { libraryId: id, adminNote: note },
+      });
+      return res;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  banLibrary: async (libraryId, adminNote = "") => {
+    try {
+      const res = await api.post("admin/ban-library", null, {
+        params: { libraryId, adminNote },
+      });
+      return res;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  unbanLibrary: async (libraryId) => {
+    try {
+      const res = await api.post("admin/unban-library", null, {
+        params: { libraryId },
+      });
+      return res;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+
 
   updateRegistrationStatus: async (id, action) => {
     try {
@@ -21,17 +67,5 @@ export const adminService = {
     } catch (error) {
       throw error.response?.data || error.message;
     }
-  },
-
-  approveRegistration: async (id) => {
-    return adminService.updateRegistrationStatus(id, "approve");
-  },
-
-  declineRegistration: async (id) => {
-    return adminService.updateRegistrationStatus(id, "decline");
-  },
-
-  banRegistration: async (id) => {
-    return adminService.updateRegistrationStatus(id, "ban");
-  },
+  }
 };

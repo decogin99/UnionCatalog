@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { authService } from '../services/authService';
 import { FiUserPlus } from 'react-icons/fi';
 
@@ -20,6 +20,12 @@ const Signup = () => {
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitMessage, setSubmitMessage] = useState('');
+    const location = useLocation();
+    const isCheckMode = new URLSearchParams(location.search).get('check') === 'true';
+    const [registrationNo, setRegistrationNo] = useState('');
+    const [isChecking, setIsChecking] = useState(false);
+    const [checkMessage, setCheckMessage] = useState('');
+    const [checkSuccess, setCheckSuccess] = useState(null);
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -105,11 +111,72 @@ const Signup = () => {
                     <div className="inline-flex items-center justify-center rounded-full bg-gradient-to-br from-[#1B4B8A] to-[#2E6BAA] text-white w-12 h-12 mb-3 shadow-md">
                         <FiUserPlus size={22} />
                     </div>
-                    <h1 className="text-3xl sm:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#1B4B8A] to-[#2E6BAA]">Create Your Library</h1>
-                    <p className="mt-2 text-sm sm:text-base text-[#1B4B8A]">Register your organization to access Union Catalog services</p>
+                    <h1 className="text-3xl sm:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#1B4B8A] to-[#2E6BAA]">{isCheckMode ? 'Check Registration Status' : 'Create Your Library'}</h1>
+                    <p className="mt-2 text-sm sm:text-base text-[#1B4B8A]">{isCheckMode ? 'Enter your registration number to see its status' : 'Register your organization to access Union Catalog services'}</p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6 font-medium">
+                {isCheckMode ? (
+                    <form
+                        onSubmit={async (e) => {
+                            e.preventDefault();
+                            const rn = registrationNo.trim();
+                            if (!rn) { setCheckMessage('Please enter your registration number'); return; }
+                            setCheckMessage('');
+                            setIsChecking(true);
+                            try {
+                                const res = await authService.checkRegistrationNumber(rn);
+                                const msg = res?.message || 'Checked';
+                                setCheckMessage(msg);
+                                setCheckSuccess(res?.success === true);
+                            } catch (err) {
+                                const msg = err?.message || 'Failed to check registration number';
+                                setCheckMessage(msg);
+                                setCheckSuccess(false);
+                            } finally {
+                                setIsChecking(false);
+                            }
+                        }}
+                        className="space-y-6 font-medium"
+                    >
+                        <div>
+                            <input
+                                type="text"
+                                name="registrationNo"
+                                placeholder="Registration Number (e.g., LIB-YYYYMMDD-XXXXXX)"
+                                value={registrationNo}
+                                onChange={(e)=>setRegistrationNo(e.target.value)}
+                                autoComplete='off'
+                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]"
+                                maxLength={40}
+                            />
+                        </div>
+                        {checkMessage && (
+                            <div className={`rounded-xl px-4 py-3 text-sm ${
+                                checkMessage.includes('Pending')
+                                    ? 'bg-yellow-50 text-yellow-700 ring-1 ring-yellow-200'
+                                    : (checkMessage.includes('Declined') || checkMessage.includes('Banned'))
+                                        ? 'bg-red-50 text-red-700 ring-1 ring-red-200'
+                                        : checkSuccess
+                                            ? 'bg-green-50 text-green-700 ring-1 ring-green-200'
+                                            : 'bg-red-50 text-red-700 ring-1 ring-red-200'
+                            }`}>
+                                {checkMessage}
+                            </div>
+                        )}
+                        <button type="submit" disabled={isChecking} className="w-full bg-[#2E6BAA] text-white py-3 rounded-xl hover:bg-opacity-90 transition duration-300 shadow-md">
+                            {isChecking ? 'Checking...' : 'Check'}
+                        </button>
+                        <div className="text-center mt-1">
+                            <div className='mb-3'>
+                                <Link to="/Signup" className="text-[#2E6BAA] hover:underline">Back to Register</Link>
+                            </div>
+                            <div>
+                                <Link to="/Login" className="text-[#2E6BAA] hover:underline">Back to Login</Link>
+                            </div>
+                        </div>
+                    </form>
+                ) : (
+                    <form onSubmit={handleSubmit} className="space-y-6 font-medium">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <input
                             type="text"
@@ -254,8 +321,15 @@ const Signup = () => {
                         <Link to="/Login" className="text-[#2E6BAA] hover:underline">
                             Sign in
                         </Link>
+                        <div className="mt-2">
+                            <span className="text-gray-600">Already registered? </span>
+                            <Link to="/Signup?check=true" className="text-[#2E6BAA] hover:underline">
+                                Check
+                            </Link>
+                        </div>
                     </div>
-                </form>
+                    </form>
+                )}
             </div>
         </div>
     );

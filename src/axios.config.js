@@ -90,9 +90,9 @@ export const apiService = {
     );
   },
 
-  post: async (url, data = {}) => {
+  post: async (url, data = {}, options = {}) => {
     return handleApiRequest(() =>
-      makeApiRequest(axiosInstance.post(url, data))
+      makeApiRequest(axiosInstance.post(url, data, options))
     );
   },
 

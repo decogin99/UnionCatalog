@@ -7,6 +7,8 @@ import Profile from "./pages/Profile";
 import Books from "./pages/Books";
 import LandingPage from "./pages/Landing";
 import OTPVerification from "./pages/OTPVerification";
+import Settings from "./pages/Settings";
+
 import RequireRole from "./routes/RequireRole";
 import LibraryRegistrations from "./pages/admin/LibraryRegistrations";
 
@@ -24,6 +26,7 @@ function App() {
         <Route path="/Profile" element={<RequireRole><Profile /></RequireRole>} />
         <Route path="/EnglishBooks" element={<RequireRole><Books /></RequireRole>} />
         <Route path="/MyanmarBooks" element={<RequireRole><Books /></RequireRole>} />
+        <Route path="/Settings" element={<RequireRole><Settings /></RequireRole>} />
       </Routes>
     </Router>
   );

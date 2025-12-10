@@ -18,11 +18,12 @@ export const authService = {
     }
   },
 
-  verifyOTP: async (username, otpCode) => {
+  verifyOTP: async (username, otpCode, userType) => {
     try {
-      const response = await api.post("/auth/verify-otp", {
+      const response = await api.post("auth/verify-otp", {
         Username: username,
         OTPCode: otpCode,
+        UserType: userType,
       });
       return response;
     } catch (error) {
@@ -63,6 +64,48 @@ export const authService = {
         fd.append('DocumentFile', null);
       }
       const response = await api.post('auth/library/register', fd);
+      return response;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  checkRegistrationNumber: async (registrationNumber) => {
+    try {
+      const response = await api.get('auth/library/check-registration-number', { registrationNumber });
+      return response;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  changePassword: async (currentPassword, newPassword, userType) => {
+    try {
+      const response = await api.post('/auth/change-password', {
+        userType: userType,
+        CurrentPassword: currentPassword,
+        NewPassword: newPassword,
+      });
+      return response;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  getTwoFactorStatus: async () => {
+    try {
+      const response = await api.get('/auth/2FA/status');
+      return response;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  setTwoFactorEnabled: async (enabled) => {
+    try {
+      const response = await api.post('/auth/2FA/status', {
+        Enabled: !!enabled,
+      });
       return response;
     } catch (error) {
       throw error.response?.data || error.message;
