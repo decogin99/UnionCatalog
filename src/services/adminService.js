@@ -1,12 +1,13 @@
 import api from "../axios.config";
 
 export const adminService = {
-  getLibraryList: async (pageNumber = 1, libraryName = "", status = "All") => {
+  getLibraryList: async (pageNumber = 1, libraryName = "", status = "All", emailVerified = "All") => {
     try {
       const res = await api.get("admin/get-library-list", {
         pageNumber,
         libraryName,
         status,
+        emailVerified,
       });
       return res;
     } catch (error) {

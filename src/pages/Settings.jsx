@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { authService } from '../services/authService';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
+import AdminSidebar from '../components/admin/AdminSidebar';
+import AdminNavbar from '../components/admin/AdminNavbar';
 import { useAuth } from '../context/AuthProvider.jsx';
 
 const Settings = () => {
@@ -16,22 +18,21 @@ const Settings = () => {
   const [pwLoading, setPwLoading] = useState(false);
 
   const [twoFAEnabled, setTwoFAEnabled] = useState(false);
-  const [twoFALoading, setTwoFALoading] = useState(false);
+  const [twoFALoading, setTwoFALoading] = useState(true);
   const [twoFAMessage, setTwoFAMessage] = useState('');
   const [twoFASuccess, setTwoFASuccess] = useState(null);
+  const [twoFAFetchError, setTwoFAFetchError] = useState(false);
 
   const fetchTwoFA = async () => {
     setTwoFALoading(true);
-    setTwoFAMessage('');
     try {
-      const res = await authService.getTwoFactorStatus();
-      const enabled = res?.data?.enabled ?? res?.enabled ?? false;
+      const res = await authService.getTwoFactorStatus(user?.role || 'Library');
+      const enabled = res?.data?.is2FAEnabled ?? res?.is2FAEnabled ?? false;
       setTwoFAEnabled(!!enabled);
+      setTwoFAFetchError(false);
     } catch (err) {
-      setTwoFAEnabled(false);
-      setTwoFASuccess(false);
-      setTwoFAMessage(err?.message || 'Failed to load 2FA status');
-      setTimeout(() => setTwoFAMessage(''), 3000);
+      setTwoFAMessage(err?.message || 'Failed to fetch 2FA status');
+      setTwoFAFetchError(true);
     } finally {
       setTwoFALoading(false);
     }
@@ -54,9 +55,9 @@ const Settings = () => {
       setPwMessage('New passwords do not match');
       return;
     }
-    if (newPassword.length < 6) {
+    if (newPassword.length < 5) {
       setPwSuccess(false);
-      setPwMessage('New password must be at least 6 characters');
+      setPwMessage('New password must be at least 5 characters');
       return;
     }
     if (currentPassword === newPassword) {
@@ -90,10 +91,10 @@ const Settings = () => {
     setTwoFALoading(true);
     setTwoFAMessage('');
     try {
-      const res = await authService.setTwoFactorEnabled(!twoFAEnabled);
+      const res = await authService.setTwoFactorEnabled(!twoFAEnabled, user?.role || 'Library');
       if (res?.success) {
         setTwoFASuccess(true);
-        setTwoFAMessage(res?.message || (!twoFAEnabled ? '2FA enabled' : '2FA disabled'));
+        setTwoFAMessage(res?.message || (!twoFAEnabled ? '2FA enabled successfully' : '2FA disabled successfully'));
         setTwoFAEnabled(!twoFAEnabled);
       } else {
         setTwoFASuccess(false);
@@ -110,8 +111,16 @@ const Settings = () => {
 
   return (
     <div className="fixed inset-0 flex flex-col bg-[#F2F2F2]">
-      <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
-      <Navbar toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
+      {(user?.role === 'SuperAdmin') ? (
+        <AdminSidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+      ) : (
+        <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+      )}
+      {(user?.role === 'SuperAdmin') ? (
+        <AdminNavbar toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
+      ) : (
+        <Navbar toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
+      )}
       <div className="flex-1 lg:ml-64 mt-16 transition-all duration-300 overflow-y-auto">
         <div className="p-4 lg:px-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Settings</h1>
@@ -175,28 +184,38 @@ const Settings = () => {
             <div className="bg-white rounded-xl p-6 shadow">
               <h2 className="text-lg font-semibold text-gray-900 mb-2">Two-Factor Authentication (2FA)</h2>
               <p className="text-xs text-gray-600 mb-3">Use 2FA to add an extra layer of security to your account.</p>
-              {twoFAMessage && (
-                <div className={`mb-3 rounded-xl px-4 py-3 text-sm ${twoFASuccess ? 'bg-green-50 text-green-700 ring-1 ring-green-200' : 'bg-red-50 text-red-700 ring-1 ring-red-200'}`}>
-                  {twoFAMessage}
-                </div>
-              )}
+
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-700">Status: <span className={twoFAEnabled ? 'text-green-700' : 'text-red-700'}>{twoFAEnabled ? 'Enabled' : 'Disabled'}</span></span>
-                <button
-                  onClick={handleToggleTwoFA}
-                  disabled={twoFALoading}
-                  className={`px-4 py-2 rounded-lg text-white ${twoFAEnabled ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'} disabled:opacity-70`}
-                >
+                <span className="text-sm text-gray-700">Status: {twoFALoading ? (
+                  <span className="text-gray-600 italic">Loading...</span>
+                ) : twoFAFetchError ? (
+                  <span className="text-red-700">Error</span>
+                ) : (
+                  <strong className={`${twoFAEnabled ? 'text-green-700' : 'text-red-700'}`}>{twoFAEnabled ? 'ON' : 'OFF'}</strong>
+                )}</span>
+                <div className="flex items-center">
                   {twoFALoading ? (
-                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0a12 12 0 100 24v-4a8 8 0 01-8-8z"></path>
-                    </svg>
+                    <div className="relative inline-flex h-6 w-11 items-center justify-center">
+                      <svg className="animate-spin h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0a12 12 0 100 24v-4a8 8 0 01-8-8z"></path>
+                      </svg>
+                    </div>
                   ) : (
-                    twoFAEnabled ? 'Disable 2FA' : 'Enable 2FA'
+                    <button
+                      onClick={handleToggleTwoFA}
+                      role="switch"
+                      aria-checked={twoFAEnabled}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${twoFAEnabled ? 'bg-green-600' : 'bg-gray-300'} cursor-pointer`}
+                    >
+                      <span className={`inline-block h-5 w-5 transform bg-white rounded-full shadow transition-transform ${twoFAEnabled ? 'translate-x-5' : 'translate-x-1'}`}></span>
+                    </button>
                   )}
-                </button>
+                </div>
               </div>
+              {twoFAMessage && (
+                <div className={`text-xs mt-2 ${twoFASuccess ? 'text-green-700' : 'text-red-700'}`}>{twoFAMessage}</div>
+              )}
             </div>
           </div>
         </div>

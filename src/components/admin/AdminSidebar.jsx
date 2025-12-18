@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { FiBookOpen, FiLogOut, FiShield } from "react-icons/fi";
+import { FiBookOpen, FiLogOut, FiShield, FiSettings } from "react-icons/fi";
 import { authService } from "../../services/authService";
 import { useAuth } from "../../context/AuthProvider.jsx";
 
@@ -10,6 +10,7 @@ const AdminSidebar = ({ isOpen, setIsOpen }) => {
 
   const menuItems = [
     { path: "/Admin/Registrations", icon: <FiBookOpen size={15} />, label: "Registrations" },
+    { path: "/Settings", icon: <FiSettings size={15} />, label: "Settings" },
   ];
 
   const handleLogout = async () => {

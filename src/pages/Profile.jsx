@@ -9,13 +9,22 @@ const Profile = () => {
     const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
     const fileInputRef = useRef(null);
     const [profileImage, setProfileImage] = useState(profilePlaceholder);
+    const coverInputRef = useRef(null);
+    const [coverImage, setCoverImage] = useState('');
     const [formData, setFormData] = useState({
-        organizationName: 'Myanmar Library Association',
-        organizationType: 'Non-Profit',
-        email: 'info@mla.org.mm',
-        phone: '+95 123 456 789',
-        website: 'http://www.mla.org.mm',
-        address: 'No. 123, Example Street, Yangon, Myanmar'
+        LibraryName: 'Myanmar Union Catalog',
+        LibraryType: 'Public',
+        OwnerName: 'John Doe',
+        ContactPerson: 'Jane Smith',
+        Email: 'info@ucatalog.mm',
+        PhoneNumber: '+95 123 456 789',
+        Township: 'Yangon',
+        StateDivision: 'Yangon Region',
+        Address: 'No. 123, Example Street, Yangon, Myanmar',
+        LibraryCover: '',
+        LibraryPhoto: '',
+        BookCount: 0,
+        UpdatedAt: new Date().toISOString(),
     });
 
     const handleImageChange = (e) => {
@@ -24,6 +33,19 @@ const Profile = () => {
             const reader = new FileReader();
             reader.onloadend = () => {
                 setProfileImage(reader.result);
+                setFormData(prev => ({ ...prev, LibraryPhoto: reader.result }));
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleCoverChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setCoverImage(reader.result);
+                setFormData(prev => ({ ...prev, LibraryCover: reader.result }));
             };
             reader.readAsDataURL(file);
         }
@@ -53,99 +75,148 @@ const Profile = () => {
                 <div className="p-4 lg:px-8">
                     <h1 className="text-2xl font-bold text-gray-800 mb-6">Organization Profile</h1>
 
+                    <div className="relative mb-6 rounded-xl overflow-hidden ring-1 ring-white/20">
+                        {coverImage ? (
+                            <img src={coverImage} alt="Cover" className="w-full h-40 sm:h-56 object-cover" />
+                        ) : (
+                            <div className="w-full h-40 sm:h-56 bg-gradient-to-r from-[#1B4B8A] via-[#1B4B8A] to-[#2E6BAA]" />
+                        )}
+                        <button
+                            type="button"
+                            onClick={() => coverInputRef.current?.click()}
+                            className="absolute top-3 right-3 bg-white/20 text-white px-3 py-1 rounded-md backdrop-blur hover:bg-white/30 text-sm inline-flex items-center gap-2"
+                        >
+                            <FiCamera size={14} />
+                            Change Cover
+                        </button>
+                        <input
+                            type="file"
+                            ref={coverInputRef}
+                            onChange={handleCoverChange}
+                            accept="image/*"
+                            className="hidden"
+                        />
+                    </div>
+
                     <div className="bg-white rounded-lg shadow-md p-6">
                         <form onSubmit={handleSubmit} className="space-y-5 font-medium">
                             {/* Profile Image Section */}
-                            <div className="flex flex-col items-center mb-6">
+                            <div className="flex items-center gap-4 mb-6">
                                 <div className="relative">
-                                    <img
-                                        src={profileImage}
-                                        alt=""
-                                        className="w-32 h-32 rounded-full object-cover border-4 border-[#2E6BAA]"
-                                    />
+                                    <img src={profileImage} alt="" className="w-24 h-24 rounded-full object-cover ring-4 ring-white shadow-md" />
                                     <button
                                         type="button"
                                         onClick={() => fileInputRef.current?.click()}
-                                        className="absolute bottom-0 right-0 bg-[#2E6BAA] text-white p-2 rounded-full hover:bg-opacity-90"
+                                        className="absolute -bottom-1 -right-1 bg-[#2E6BAA] text-white p-2 rounded-full hover:bg-opacity-90"
                                     >
-                                        <FiCamera size={20} />
+                                        <FiCamera size={16} />
                                     </button>
-                                    <input
-                                        type="file"
-                                        ref={fileInputRef}
-                                        onChange={handleImageChange}
-                                        accept="image/*"
-                                        className="hidden"
-                                    />
+                                    <input type="file" ref={fileInputRef} onChange={handleImageChange} accept="image/*" className="hidden" />
+                                </div>
+                                <div>
+                                    <div className="text-lg font-semibold text-gray-900">{formData.LibraryName}</div>
+                                    <div className="text-sm text-gray-600">{formData.LibraryType}</div>
+                                    <div className="text-xs text-gray-500">{formData.Email}</div>
                                 </div>
                             </div>
 
-                            {/* Organization Details */}
+                            {/* Library Details */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Organization Name</label>
+                                    <label className="block text-sm font-medium text-gray-700">Library Name</label>
                                     <input
                                         type="text"
-                                        name="organizationName"
-                                        value={formData.organizationName}
+                                        name="LibraryName"
+                                        value={formData.LibraryName}
                                         onChange={handleInputChange}
                                         className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0C2D57] focus:border-[#0C2D57]"
                                     />
                                 </div>
-
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Organization Type</label>
+                                    <label className="block text-sm font-medium text-gray-700">Library Type</label>
                                     <input
                                         type="text"
-                                        name="organizationType"
-                                        value={formData.organizationType}
+                                        name="LibraryType"
+                                        value={formData.LibraryType}
                                         onChange={handleInputChange}
                                         className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0C2D57] focus:border-[#0C2D57]"
                                     />
                                 </div>
-
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Owner Name</label>
+                                    <input
+                                        type="text"
+                                        name="OwnerName"
+                                        value={formData.OwnerName}
+                                        onChange={handleInputChange}
+                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0C2D57] focus:border-[#0C2D57]"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Contact Person</label>
+                                    <input
+                                        type="text"
+                                        name="ContactPerson"
+                                        value={formData.ContactPerson}
+                                        onChange={handleInputChange}
+                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0C2D57] focus:border-[#0C2D57]"
+                                    />
+                                </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700">Email</label>
                                     <input
                                         type="email"
-                                        name="email"
-                                        value={formData.email}
+                                        name="Email"
+                                        value={formData.Email}
                                         onChange={handleInputChange}
                                         className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0C2D57] focus:border-[#0C2D57]"
                                     />
                                 </div>
-
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Phone</label>
+                                    <label className="block text-sm font-medium text-gray-700">Phone Number</label>
                                     <input
-                                        type="tel"
-                                        name="phone"
-                                        value={formData.phone}
+                                        type="text"
+                                        name="PhoneNumber"
+                                        value={formData.PhoneNumber}
                                         onChange={handleInputChange}
                                         className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0C2D57] focus:border-[#0C2D57]"
                                     />
                                 </div>
-
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Website</label>
+                                    <label className="block text-sm font-medium text-gray-700">Township</label>
                                     <input
-                                        type="url"
-                                        name="website"
-                                        value={formData.website}
+                                        type="text"
+                                        name="Township"
+                                        value={formData.Township}
                                         onChange={handleInputChange}
                                         className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0C2D57] focus:border-[#0C2D57]"
                                     />
                                 </div>
-
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">State/Division</label>
+                                    <input
+                                        type="text"
+                                        name="StateDivision"
+                                        value={formData.StateDivision}
+                                        onChange={handleInputChange}
+                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0C2D57] focus:border-[#0C2D57]"
+                                    />
+                                </div>
                                 <div className="md:col-span-2">
                                     <label className="block text-sm font-medium text-gray-700">Address</label>
                                     <textarea
-                                        name="address"
-                                        value={formData.address}
+                                        name="Address"
+                                        value={formData.Address}
                                         onChange={handleInputChange}
                                         rows={3}
                                         className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0C2D57] focus:border-[#0C2D57]"
                                     />
+                                </div>
+                                <div className="md:col-span-2">
+                                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex items-center justify-between">
+                                        <div className="text-sm text-gray-700">Books: <strong className="text-gray-900">{formData.BookCount}</strong></div>
+                                        <div className="text-sm text-gray-700">Updated: <span className="text-gray-900">{new Date(formData.UpdatedAt).toLocaleString()}</span></div>
+                                    </div>
                                 </div>
                             </div>
 

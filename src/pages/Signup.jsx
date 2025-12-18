@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { authService } from '../services/authService';
-import { FiUserPlus } from 'react-icons/fi';
+import { FiUserPlus, FiCheck } from 'react-icons/fi';
 
 const Signup = () => {
     const [formData, setFormData] = useState({
@@ -20,6 +20,7 @@ const Signup = () => {
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitMessage, setSubmitMessage] = useState('');
+    const [submitSuccess, setSubmitSuccess] = useState(null);
     const location = useLocation();
     const isCheckMode = new URLSearchParams(location.search).get('check') === 'true';
     const [registrationNo, setRegistrationNo] = useState('');
@@ -65,13 +66,16 @@ const Signup = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSubmitMessage('');
+        setSubmitSuccess(null);
         const error = validateForm();
         if (error) {
             setSubmitMessage(error);
+            setSubmitSuccess(false);
             return;
         }
         if (!formData.agreeToTerms) {
             setSubmitMessage('You must agree to the Terms and Conditions');
+            setSubmitSuccess(false);
             return;
         }
 
@@ -81,6 +85,7 @@ const Signup = () => {
             const res = await authService.libraryRegister(formData);
             if (res.success) {
                 setSubmitMessage(res.message || 'Library registration successful');
+                setSubmitSuccess(true);
                 setFormData({
                     libraryName: '',
                     libraryType: '',
@@ -96,9 +101,11 @@ const Signup = () => {
                 });
             } else {
                 setSubmitMessage(res.message || 'Failed to submit registration');
+                setSubmitSuccess(false);
             }
         } catch (err) {
             setSubmitMessage(err?.message || 'Failed to submit registration');
+            setSubmitSuccess(false);
         } finally {
             setIsSubmitting(false);
         }
@@ -108,11 +115,31 @@ const Signup = () => {
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0C2D57] via-[#1B4B8A] to-[#2E6BAA] p-4 sm:p-6">
             <div className="bg-white/95 backdrop-blur-sm p-8 sm:p-10 rounded-2xl shadow-xl w-full max-w-4xl ring-1 ring-white/50">
                 <div className="text-center mb-6">
-                    <div className="inline-flex items-center justify-center rounded-full bg-gradient-to-br from-[#1B4B8A] to-[#2E6BAA] text-white w-12 h-12 mb-3 shadow-md">
-                        <FiUserPlus size={22} />
-                    </div>
-                    <h1 className="text-3xl sm:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#1B4B8A] to-[#2E6BAA]">{isCheckMode ? 'Check Registration Status' : 'Create Your Library'}</h1>
-                    <p className="mt-2 text-sm sm:text-base text-[#1B4B8A]">{isCheckMode ? 'Enter your registration number to see its status' : 'Register your organization to access Union Catalog services'}</p>
+                    {isCheckMode ? (
+                        <>
+                            <div className="inline-flex items-center justify-center rounded-full bg-gradient-to-br from-[#1B4B8A] to-[#2E6BAA] text-white w-12 h-12 mb-3 shadow-md">
+                                <FiUserPlus size={22} />
+                            </div>
+                            <h1 className="text-3xl sm:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#1B4B8A] to-[#2E6BAA]">Check Registration Status</h1>
+                            <p className="mt-2 text-sm sm:text-base text-[#1B4B8A]">Enter your registration number to see its status</p>
+                        </>
+                    ) : submitSuccess ? (
+                        <>
+                            <div className="inline-flex items-center justify-center rounded-full bg-gradient-to-br from-[#1B4B8A] to-[#2E6BAA] text-white w-12 h-12 mb-3 shadow-md">
+                                <FiCheck size={22} />
+                            </div>
+                            <h1 className="text-3xl sm:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#1B4B8A] to-[#2E6BAA] mt-2">Library Registration Successful</h1>
+                            <p className="mt-3 text-sm sm:text-base text-[#1B4B8A]">You can now sign in or check your registration status.</p>
+                        </>
+                    ) : (
+                        <>
+                            <div className="inline-flex items-center justify-center rounded-full bg-gradient-to-br from-[#1B4B8A] to-[#2E6BAA] text-white w-12 h-12 mb-3 shadow-md">
+                                <FiUserPlus size={22} />
+                            </div>
+                            <h1 className="text-3xl sm:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#1B4B8A] to-[#2E6BAA]">Create Your Library</h1>
+                            <p className="mt-2 text-sm sm:text-base text-[#1B4B8A]">Register your organization to access Union Catalog services</p>
+                        </>
+                    )}
                 </div>
 
                 {isCheckMode ? (
@@ -166,18 +193,28 @@ const Signup = () => {
                         <button type="submit" disabled={isChecking} className="w-full bg-[#2E6BAA] text-white py-3 rounded-xl hover:bg-opacity-90 transition duration-300 shadow-md">
                             {isChecking ? 'Checking...' : 'Check'}
                         </button>
-                        <div className="text-center mt-1">
+                        <div className="text-center mt-1 ">
                             <div className='mb-3'>
                                 <Link to="/Signup" className="text-[#2E6BAA] hover:underline">Back to Register</Link>
                             </div>
                             <div>
-                                <Link to="/Login" className="text-[#2E6BAA] hover:underline">Back to Login</Link>
+                                <Link to="/Login" className="text-[#2E6BAA] hover:underline">Back to Sign in</Link>
                             </div>
                         </div>
                     </form>
                 ) : (
-                    <form onSubmit={handleSubmit} className="space-y-6 font-medium">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    submitSuccess ? (
+                        <div className="text-center mt-7 font-medium">
+                            <div className='mb-3'>
+                                <Link to="/Login" className="text-[#2E6BAA] hover:underline">Back to Sign-in</Link>
+                            </div>
+                            <div>
+                                <Link to="/Signup?check=true" className="text-[#2E6BAA] hover:underline">Check Registration</Link>
+                            </div>
+                        </div>
+                    ) : (
+                        <form onSubmit={handleSubmit} className="space-y-6 font-medium">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <input
                             type="text"
                             name="libraryName"
@@ -305,7 +342,9 @@ const Signup = () => {
                     </div>
 
                     {submitMessage && (
-                        <div className="text-center text-sm text-gray-700">{submitMessage}</div>
+                        <div className={`rounded-xl px-4 py-3 text-sm ${submitSuccess ? 'bg-green-50 text-green-700 ring-1 ring-green-200' : 'bg-red-50 text-red-700 ring-1 ring-red-200'}`}>
+                            {submitMessage}
+                        </div>
                     )}
 
                     <button
@@ -329,6 +368,7 @@ const Signup = () => {
                         </div>
                     </div>
                     </form>
+                    )
                 )}
             </div>
         </div>

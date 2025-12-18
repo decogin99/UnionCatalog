@@ -92,19 +92,20 @@ export const authService = {
     }
   },
 
-  getTwoFactorStatus: async () => {
+  getTwoFactorStatus: async (userType) => {
     try {
-      const response = await api.get('/auth/2FA/status');
+      const response = await api.get('auth/get-2FA-status', { userType });
       return response;
     } catch (error) {
       throw error.response?.data || error.message;
     }
   },
 
-  setTwoFactorEnabled: async (enabled) => {
+  setTwoFactorEnabled: async (enabled, userType) => {
     try {
-      const response = await api.post('/auth/2FA/status', {
-        Enabled: !!enabled,
+      const response = await api.post('auth/change-2FA-status', {
+        UserType: userType,
+        Enable2FA: !!enabled,
       });
       return response;
     } catch (error) {

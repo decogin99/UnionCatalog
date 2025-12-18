@@ -6,7 +6,7 @@ const API_URL = import.meta.env.VITE_API_BASE_URL;
 export const axiosInstance = axios.create({
   baseURL: API_URL,
   withCredentials: true,
-  timeout: 10000,
+  timeout: 20000,
 });
 
 /**
@@ -15,7 +15,7 @@ export const axiosInstance = axios.create({
  * @param {number} timeout - Timeout in milliseconds
  * @returns {Promise} - The API response or error
  */
-export const makeApiRequest = async (apiCall, timeout = 100000) => {
+export const makeApiRequest = async (apiCall, timeout = 20000) => {
   return Promise.race([
     apiCall,
     new Promise((_, reject) =>
