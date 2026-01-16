@@ -111,5 +111,37 @@ export const authService = {
     } catch (error) {
       throw error.response?.data || error.message;
     }
+  },
+
+  resetPassword: async (email) => {
+    try {
+      const response = await api.post('auth/reset-password', null, { params: { email } });
+      return response;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  validateResetToken: async (token, email, userType) => {
+    try {
+      const response = await api.get('auth/validate-reset-token', { token, email, userType });
+      return response;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  confirmResetPassword: async (token, email, userType, newPassword) => {
+    try {
+      const response = await api.post('auth/confirm-reset-password', {
+        Token: token,
+        Email: email,
+        UserType: userType,
+        NewPassword: newPassword,
+      });
+      return response;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
   }
 };

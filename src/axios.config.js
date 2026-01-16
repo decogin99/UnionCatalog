@@ -85,8 +85,28 @@ export const handleApiRequest = async (apiCallFn) => {
 // Helper methods for common HTTP methods
 export const apiService = {
   get: async (url, params = {}) => {
+    const hasConfigFields =
+      params &&
+      (Object.prototype.hasOwnProperty.call(params, "params") ||
+        Object.prototype.hasOwnProperty.call(params, "responseType") ||
+        Object.prototype.hasOwnProperty.call(params, "headers"));
+
+    const config = (() => {
+      if (hasConfigFields) {
+        const { params: queryParams, responseType, headers, ...rest } = params;
+        const finalParams =
+          queryParams !== undefined
+            ? queryParams
+            : Object.keys(rest).length
+            ? rest
+            : {};
+        return { params: finalParams, responseType, headers };
+      }
+      return { params };
+    })();
+
     return handleApiRequest(() =>
-      makeApiRequest(axiosInstance.get(url, { params }))
+      makeApiRequest(axiosInstance.get(url, config))
     );
   },
 

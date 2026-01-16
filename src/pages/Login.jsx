@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FcGoogle } from "react-icons/fc";
 import { Link, useNavigate } from "react-router-dom";
 import { authService } from "../services/authService";
@@ -22,9 +22,9 @@ const Login = () => {
     try {
       const res = await authService.login(email, password, rememberMe);
       if (res?.success) {
-        const { token, userType } = res.data || {};
+        const { token, userType, libraryName } = res.data || {};
         if (token) {
-          setUser({ email, role: userType || "Library" });
+          setUser({ email, role: userType || "Library", libraryName: libraryName || '' });
           sessionStorage.removeItem("pendingUsername");
           sessionStorage.removeItem("pendingUserType");
           navigate(userType === "SuperAdmin" ? "/Admin/Registrations" : "/Dashboard");
@@ -42,6 +42,10 @@ const Login = () => {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    document.title = "Login"
+  }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0C2D57] via-[#1B4B8A] to-[#2E6BAA] px-4 sm:px-6">

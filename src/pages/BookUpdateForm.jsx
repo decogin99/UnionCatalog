@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
@@ -13,20 +13,40 @@ const BookUpdateForm = () => {
   const bookType = location.pathname.includes('English') ? 'English' : 'Myanmar';
   const imageBase = import.meta.env.VITE_IMAGE_BASE_URL || '';
 
+  useEffect(() => {
+    document.title = `Update ${bookType} Book`;
+    localStorage.setItem('Books:lastDest', 'detail');
+  });
+
   const [form, setForm] = useState({
-    ItemBarCodeID: '',
-    ISBN: '',
-    Title: '',
-    SubTitle: '',
+    RemoveBookCover: false,
+    BookCoverFile: null,
+    BookCover: '',
+    BarCodeId: '',
     Author: '',
+    Title: '',
+    ISBN: '',
+    SubTitle: '',
     Edition: '',
     Publisher: '',
     PublishedYear: '',
     NumberOfPages: '',
     Description: '',
-    BookCoverFile: null,
-    BookCover: '',
-    RemoveBookCover: false,
+    Category: '',
+    SubjectHeadings: '',
+    AccessionNo: '',
+    ClassNo: '',
+    CallNo: '',
+    Translator: '',
+    Editor: '',
+    NoOfCopies: '',
+    Place: '',
+    Pagination: '',
+    Illustration: '',
+    Price: 0,
+    Summary: '',
+    RegistrationDate: '',
+    Remarks: '',
   });
 
   const [coverPreview, setCoverPreview] = useState('');
@@ -34,6 +54,15 @@ const BookUpdateForm = () => {
   const [submitLoading, setSubmitLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [success, setSuccess] = useState(null);
+  const messageRef = useRef(null);
+  useEffect(() => {
+    if (message) {
+      requestAnimationFrame(() => {
+        messageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        messageRef.current?.focus();
+      });
+    }
+  }, [message]);
 
   useEffect(() => {
     const fetch = async () => {
@@ -46,19 +75,34 @@ const BookUpdateForm = () => {
             ? `${imageBase}libraryBookCovers/${bookType === 'English' ? 'englishBooks' : 'myanmarBooks'}/${coverFileName}`
             : '';
           setForm({
-            ItemBarCodeID: b.ItemBarCodeID ?? b.itemBarCodeID ?? '',
-            ISBN: b.ISBN ?? b.isbn ?? '',
+            RemoveBookCover: false,
+            BookCover: coverFileName,
+            BookCoverFile: null,
+            BarCodeId: b.BarCodeId ?? b.barCodeId ?? '',
             Title: b.Title ?? b.title ?? '',
-            SubTitle: b.SubTitle ?? b.subTitle ?? '',
             Author: b.Author ?? b.author ?? '',
+            ISBN: b.ISBN ?? b.isbn ?? '',
+            SubTitle: b.SubTitle ?? b.subTitle ?? '',
             Edition: b.Edition ?? b.edition ?? '',
             Publisher: b.Publisher ?? b.publisher ?? '',
             PublishedYear: (b.PublishedYear ?? b.publishedYear ?? ''),
             NumberOfPages: (b.NumberOfPages ?? b.numberOfPages ?? ''),
             Description: b.Description ?? b.description ?? '',
-            BookCoverFile: null,
-            BookCover: coverFileName,
-            RemoveBookCover: false,
+            Category: b.Category ?? b.category ?? '',
+            SubjectHeadings: b.SubjectHeadings ?? b.subjectHeadings ?? '',
+            AccessionNo: b.AccessionNo ?? b.accessionNo ?? '',
+            ClassNo: b.ClassNo ?? b.classNo ?? '',
+            CallNo: b.CallNo ?? b.callNo ?? '',
+            Translator: b.Translator ?? b.translator ?? '',
+            Editor: b.Editor ?? b.editor ?? '',
+            NoOfCopies: b.NoOfCopies ?? b.noOfCopies ?? '',
+            Place: b.Place ?? b.place ?? '',
+            Pagination: b.Pagination ?? b.pagination ?? '',
+            Illustration: b.Illustration ?? b.illustration ?? '',
+            Price: b.Price ?? b.price ?? 0,
+            Summary: b.Summary ?? b.summary ?? '',
+            RegistrationDate: b.RegistrationDate ?? b.registrationDate ?? '',
+            Remarks: b.Remarks ?? b.remarks ?? '',
           });
           setCoverPreview(preview);
           setSuccess(true);
@@ -72,7 +116,7 @@ const BookUpdateForm = () => {
         setMessage(err?.message || 'Failed to load book');
       } finally {
         setLoading(false);
-        setTimeout(() => setMessage(''), 2500);
+        setTimeout(() => setMessage(''), 3000);
       }
     };
     fetch();
@@ -94,9 +138,9 @@ const BookUpdateForm = () => {
   };
 
   const validate = () => {
-    if (!form.ISBN || !form.Title || !form.Author || !form.Publisher) {
+    if (!form.Title?.trim() || !form.BarCodeId?.trim()) {
       setSuccess(false);
-      setMessage('Please fill all required fields');
+      setMessage('Please fill all required * fields');
       return false;
     }
     return true;
@@ -108,11 +152,14 @@ const BookUpdateForm = () => {
     if (!validate()) return;
     setSubmitLoading(true);
     try {
-      const res = await bookService.updateBookDetails(bookId, form, bookType);
+      const res = await bookService.updateBook(bookId, form, bookType);
       if (res?.success) {
         setSuccess(true);
         setMessage(res?.message || 'Book updated');
-        setTimeout(() => navigate(bookType === 'English' ? '/EnglishBooks' : '/MyanmarBooks'), 800);
+        setTimeout(() => {
+          localStorage.setItem('Books:lastDest', 'detail');
+          navigate(bookType === 'English' ? '/EnglishBooks' : '/MyanmarBooks');
+        }, 2000);
       } else {
         setSuccess(false);
         setMessage(res?.message || 'Failed to update book');
@@ -122,11 +169,12 @@ const BookUpdateForm = () => {
       setMessage(err?.message || 'Failed to update book');
     } finally {
       setSubmitLoading(false);
-      setTimeout(() => setMessage(''), 3000);
     }
   };
 
-  const cancel = () => navigate(bookType === 'English' ? '/EnglishBooks' : '/MyanmarBooks');
+  const cancel = () => {
+    navigate(bookType === 'English' ? '/EnglishBooks' : '/MyanmarBooks');
+  };
 
   return (
     <div className="fixed inset-0 flex flex-col bg-[#F2F2F2]">
@@ -140,7 +188,7 @@ const BookUpdateForm = () => {
           </div>
 
           {message && (
-            <div className={`mb-3 rounded-xl px-4 py-3 text-sm ${success ? 'bg-green-50 text-green-700 ring-1 ring-green-200' : 'bg-red-50 text-red-700 ring-1 ring-red-200'}`}>
+            <div ref={messageRef} tabIndex="-1" className={`mb-3 rounded-xl px-4 py-3 text-sm ${success ? 'bg-green-50 text-green-700 ring-1 ring-green-200' : 'bg-red-50 text-red-700 ring-1 ring-red-200'}`}>
               {message}
             </div>
           )}
@@ -151,10 +199,27 @@ const BookUpdateForm = () => {
             </div>
           ) : (
             <form onSubmit={handleSubmit} noValidate className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              
               <div className="bg-white rounded-xl p-6 shadow space-y-4">
                 <div>
                   <label className="text-sm text-gray-700 mb-1 block">Book Type</label>
-                  <input type="text" value={bookType} disabled className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-700" />
+                  <input type="text" value={bookType} disabled className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50" />
+                </div>
+                <div>
+                  <label className="text-sm text-gray-700 mb-1 block">Book Category</label>
+                  <input type="text" value={form.Category} onChange={(e) => setField('Category', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white" />
+                </div>
+                <div>
+                  <label className="text-sm text-gray-700 mb-1 block">Title <span className="text-red-600">*</span></label>
+                  <input type="text" value={form.Title} onChange={(e) => setField('Title', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white" />
+                </div>
+                <div>
+                  <label className="text-sm text-gray-700 mb-1 block">Author</label>
+                  <input type="text" value={form.Author} onChange={(e) => setField('Author', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white" />
+                </div>
+                <div>
+                  <label className="text-sm text-gray-700 mb-1 block">BarCode ID <span className="text-red-600">*</span></label>
+                  <input type="text" value={form.BarCodeId} onChange={(e) => setField('BarCodeId', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white" />
                 </div>
                 <div>
                   <label className="text-sm text-gray-700 mb-1 block">Book Cover</label>
@@ -195,44 +260,105 @@ const BookUpdateForm = () => {
               <div className="lg:col-span-2 bg-white rounded-xl p-6 shadow space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm text-gray-700 mb-1 block">Item Bar Code ID</label>
-                    <input type="text" value={form.ItemBarCodeID} placeholder="Auto-generated" disabled className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed" />
+                    <label className="text-sm text-gray-700 mb-1 block">Accession No</label>
+                    <input type="text" value={form.AccessionNo} onChange={(e) => setField('AccessionNo', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white" />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-700 mb-1 block">Class No</label>
+                    <input type="text" value={form.ClassNo} onChange={(e) => setField('ClassNo', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white" />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-700 mb-1 block">Call No</label>
+                    <input type="text" value={form.CallNo} onChange={(e) => setField('CallNo', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white" />
                   </div>
                   <div>
                     <label className="text-sm text-gray-700 mb-1 block">ISBN</label>
-                    <input type="text" value={form.ISBN} onChange={(e) => setField('ISBN', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#2E6BAA] bg-white" />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className="text-sm text-gray-700 mb-1 block">Title</label>
-                    <input type="text" value={form.Title} onChange={(e) => setField('Title', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#2E6BAA] bg-white" />
+                    <input type="text" value={form.ISBN} onChange={(e) => setField('ISBN', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white" />
                   </div>
                   <div>
-                    <label className="text-sm text-gray-700 mb-1 block">SubTitle</label>
-                    <input type="text" value={form.SubTitle} onChange={(e) => setField('SubTitle', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#2E6BAA] bg-white" />
+                    <label className="text-sm text-gray-700 mb-1 block">Translator</label>
+                    <input type="text" value={form.Translator} onChange={(e) => setField('Translator', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white" />
                   </div>
                   <div>
-                    <label className="text-sm text-gray-700 mb-1 block">Author</label>
-                    <input type="text" value={form.Author} onChange={(e) => setField('Author', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#2E6BAA] bg-white" />
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-700 mb-1 block">Edition</label>
-                    <input type="text" value={form.Edition} onChange={(e) => setField('Edition', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#2E6BAA] bg-white" />
+                    <label className="text-sm text-gray-700 mb-1 block">Editor</label>
+                    <input type="text" value={form.Editor} onChange={(e) => setField('Editor', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white" />
                   </div>
                   <div>
                     <label className="text-sm text-gray-700 mb-1 block">Publisher</label>
-                    <input type="text" value={form.Publisher} onChange={(e) => setField('Publisher', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#2E6BAA] bg-white" />
+                    <input type="text" value={form.Publisher} onChange={(e) => setField('Publisher', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white" />
                   </div>
                   <div>
                     <label className="text-sm text-gray-700 mb-1 block">Published Year</label>
-                    <input type="number" value={form.PublishedYear} onChange={(e) => setField('PublishedYear', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#2E6BAA] bg-white" />
+                    <input type="number" min="0" value={form.PublishedYear} onChange={(e) => setField('PublishedYear', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white" />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-700 mb-1 block">SubTitle</label>
+                    <input type="text" value={form.SubTitle} onChange={(e) => setField('SubTitle', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white" />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-700 mb-1 block">Place</label>
+                    <input type="text" value={form.Place} onChange={(e) => setField('Place', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white" />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-700 mb-1 block">Edition</label>
+                    <input type="text" value={form.Edition} onChange={(e) => setField('Edition', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white" />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-700 mb-1 block">Pagination</label>
+                    <input type="text" value={form.Pagination} onChange={(e) => setField('Pagination', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white" />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-700 mb-1 block">Subject Headings</label>
+                    <input type="text" value={form.SubjectHeadings} onChange={(e) => setField('SubjectHeadings', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white" />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-700 mb-1 block">Illustration</label>
+                    <input type="text" value={form.Illustration} onChange={(e) => setField('Illustration', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white" />
                   </div>
                   <div>
                     <label className="text-sm text-gray-700 mb-1 block">Number Of Pages</label>
-                    <input type="number" value={form.NumberOfPages} onChange={(e) => setField('NumberOfPages', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#2E6BAA] bg-white" />
+                    <input type="number" min="0" value={form.NumberOfPages} onChange={(e) => setField('NumberOfPages', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white" />
                   </div>
-                  <div className="sm:col-span-2">
+                  <div>
+                    <label className="text-sm text-gray-700 mb-1 block">Number of Copies</label>
+                    <input type="number" min="0" value={form.NoOfCopies} onChange={(e) => setField('NoOfCopies', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white" />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-700 mb-1 block">Price</label>
+                    <input type="number" min="0" max="9999999" value={form.Price} onChange={(e) => setField('Price', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white" />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-700 mb-1 block">Registration Date</label>
+                    <input type="date" value={form.RegistrationDate} onChange={(e) => setField('RegistrationDate', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white" />
+                  </div>
+                  <div>
                     <label className="text-sm text-gray-700 mb-1 block">Description</label>
-                    <textarea value={form.Description} onChange={(e) => setField('Description', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#2E6BAA] bg-white min-h-[100px]" />
+                    <textarea value={form.Description} onChange={(e) => setField('Description', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white min-h-[100px]" />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-700 mb-1 block">Remarks</label>
+                    <textarea value={form.Remarks} onChange={(e) => setField('Remarks', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white min-h-[100px]" />
+                  </div>
+                  <div></div>
+                  <div className="flex justify-end gap-3">
+                  <button onClick={cancel} className="px-3 py-2 rounded-md text-white bg-red-600 hover:bg-red-700">Cancel</button>
+                    <button
+                    type="submit"
+                    disabled={submitLoading}
+                    className={`w-full sm:w-44 px-4 py-2 rounded-lg bg-[#2E6BAA] text-white hover:bg-opacity-90 flex items-center justify-center gap-2 min-h-[44px] ${submitLoading ? 'opacity-70' : ''}`}
+                  >
+                    {submitLoading ? (
+                      <>
+                        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0a12 12 0 100 24v-4a8 8 0 01-8-8z"></path>
+                        </svg>
+                        <span>Updating...</span>
+                      </>
+                    ) : (
+                      'Save Changes'
+                    )}
+                  </button>
                   </div>
                 </div>
               </div>

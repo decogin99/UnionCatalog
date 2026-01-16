@@ -1,16 +1,42 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FiUnlock, FiLogIn } from 'react-icons/fi';
+import { FiUnlock } from 'react-icons/fi';
+import { authService } from '../services/authService';
 
 const ForgotPassword = () => {
     const [email, setEmail] = useState('');
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('');
+    const [submitMessage, setSubmitMessage] = useState('');
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        setIsSubmitted(true);
-        // Add your password reset logic here
+        setError('');
+        setSubmitMessage('');
+        if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+            setError('Please enter a valid email address');
+            return;
+        }
+        setIsLoading(true);
+        try {
+            const res = await authService.resetPassword(email.trim());
+            if (res?.success) {
+                setIsSubmitted(true);
+                setSubmitMessage(res?.message || 'Reset instructions have been sent to your email.');
+            } else {
+                setError(res?.message || 'Failed to request password reset');
+            }
+        } catch (err) {
+            setError(err?.message || 'Failed to request password reset');
+        } finally {
+            setIsLoading(false);
+        }
     };
+
+    useEffect(() => {
+        document.title = "Forgot Password"
+      }, []);
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0C2D57] via-[#1B4B8A] to-[#2E6BAA] px-4 sm:px-6">
@@ -33,14 +59,20 @@ const ForgotPassword = () => {
                                 onChange={(e) => setEmail(e.target.value)}
                                 className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]"
                                 required
+                                disabled={isLoading}
                             />
                         </div>
 
+                        {error && (
+                          <div className="rounded-xl px-4 py-3 text-sm bg-red-50 text-red-700 ring-1 ring-red-200">{error}</div>
+                        )}
+
                         <button
                             type="submit"
-                            className="w-full bg-[#2E6BAA] text-white py-3 rounded-xl hover:bg-opacity-90 transition duration-300 shadow-md"
+                            disabled={isLoading}
+                            className={`w-full bg-[#2E6BAA] text-white py-3 rounded-xl transition duration-300 shadow-md ${isLoading ? 'opacity-70' : 'hover:bg-opacity-90'}`}
                         >
-                            Send Reset Instructions
+                            {isLoading ? 'Sending...' : 'Send Reset Instructions'}
                         </button>
 
                         <div className="text-center mt-3">
@@ -51,14 +83,13 @@ const ForgotPassword = () => {
                     </form>
                 ) : (
                     <div className="text-center space-y-4 font-medium">
-                        <div className="text-green-600 mb-4">
-                            Reset instructions have been sent to your email.
+                        <div className="rounded-xl px-4 py-3 bg-green-50 text-green-700 ring-1 ring-green-200 mb-5">
+                            {submitMessage || 'Reset instructions have been sent to your email.'}
                         </div>
                         <Link
                             to="/Login"
                             className="inline-flex items-center gap-2 text-[#2E6BAA] hover:underline font-medium"
                         >
-                            <FiLogIn size={16} />
                             Back to Sign In
                         </Link>
                     </div>

@@ -1,14 +1,15 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthProvider.jsx";
 import {
-  FiBook,
   FiHome,
+  FiBook,
   FiLogOut,
   FiUser,
-  FiBookOpen,
   FiSettings,
-  FiHelpCircle,
+  FiTag,
+  FiGrid,
 } from "react-icons/fi";
+import { FaBarcode } from "react-icons/fa6";
 import { authService } from "../services/authService";
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
@@ -20,6 +21,9 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     { path: "/Dashboard", icon: <FiHome size={15} />, label: "Dashboard" },
     { path: "/EnglishBooks", icon: <FiBook size={15} />, label: "English Books" },
     { path: "/MyanmarBooks", icon: <FiBook size={15} />, label: "Myanmar Books" },
+    { path: "/Barcode", icon: <FaBarcode size={15} />, label: "Barcode Generator" },
+    { path: "/Label", icon: <FiTag size={15} />, label: "Label Generator" },
+    { path: "/DDC", icon: <FiGrid size={15} />, label: "DDC View" },
     { path: "/Profile", icon: <FiUser size={15} />, label: "Profile" },
     { path: "/Settings", icon: <FiSettings size={15} />, label: "Settings" },
   ];

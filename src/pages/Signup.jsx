@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { authService } from '../services/authService';
 import { FiUserPlus, FiCheck } from 'react-icons/fi';
@@ -111,6 +111,14 @@ const Signup = () => {
         }
     };
 
+    useEffect(() => {
+        if (isCheckMode) {
+            document.title = "Check Registration";
+        } else {
+            document.title = "Register";
+        }
+      }, [isCheckMode]);
+
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0C2D57] via-[#1B4B8A] to-[#2E6BAA] p-4 sm:p-6">
             <div className="bg-white/95 backdrop-blur-sm p-8 sm:p-10 rounded-2xl shadow-xl w-full max-w-4xl ring-1 ring-white/50">
@@ -120,7 +128,7 @@ const Signup = () => {
                             <div className="inline-flex items-center justify-center rounded-full bg-gradient-to-br from-[#1B4B8A] to-[#2E6BAA] text-white w-12 h-12 mb-3 shadow-md">
                                 <FiUserPlus size={22} />
                             </div>
-                            <h1 className="text-3xl sm:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#1B4B8A] to-[#2E6BAA]">Check Registration Status</h1>
+                            <h1 className="text-3xl sm:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#1B4B8A] to-[#2E6BAA]">Check Registration</h1>
                             <p className="mt-2 text-sm sm:text-base text-[#1B4B8A]">Enter your registration number to see its status</p>
                         </>
                     ) : submitSuccess ? (
@@ -129,14 +137,14 @@ const Signup = () => {
                                 <FiCheck size={22} />
                             </div>
                             <h1 className="text-3xl sm:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#1B4B8A] to-[#2E6BAA] mt-2">Library Registration Successful</h1>
-                            <p className="mt-3 text-sm sm:text-base text-[#1B4B8A]">You can now sign in or check your registration status.</p>
+                            <p className="mt-3 text-sm sm:text-base text-[#1B4B8A]">Wait for admin approval or check your registration status.</p>
                         </>
                     ) : (
                         <>
                             <div className="inline-flex items-center justify-center rounded-full bg-gradient-to-br from-[#1B4B8A] to-[#2E6BAA] text-white w-12 h-12 mb-3 shadow-md">
                                 <FiUserPlus size={22} />
                             </div>
-                            <h1 className="text-3xl sm:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#1B4B8A] to-[#2E6BAA]">Create Your Library</h1>
+                            <h1 className="text-3xl sm:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#1B4B8A] to-[#2E6BAA]">Register</h1>
                             <p className="mt-2 text-sm sm:text-base text-[#1B4B8A]">Register your organization to access Union Catalog services</p>
                         </>
                     )}

@@ -39,6 +39,7 @@ const Settings = () => {
   };
 
   useEffect(() => {
+    document.title = "Settings"
     fetchTwoFA();
   }, []);
 
