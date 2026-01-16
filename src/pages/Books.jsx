@@ -377,6 +377,7 @@ const Books = () => {
                         </button>
                       </div>
                     )}
+
                     {actionMessage && (
                       <div className={`mb-3 rounded-xl px-4 py-3 text-sm ${actionSuccess ? 'bg-green-50 text-green-700 ring-1 ring-green-200' : 'bg-red-50 text-red-700 ring-1 ring-red-200'}`}>
                         {actionMessage}
@@ -384,10 +385,11 @@ const Books = () => {
                     )}
 
                     {isLoading ? (
-                        <div className="flex justify-center items-center h-64">
+                      <div className="flex justify-center items-center h-64">
                             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#2E6BAA]"></div>
                         </div>
-                    ) : (!error && books.length === 0) ? (
+                    ) : (
+                      !error && books.length === 0 ? (
                         <div className="py-2 flex flex-col items-center justify-center text-center">
                             <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-3">
                                 <span className="text-2xl text-gray-400">📚</span>
@@ -396,9 +398,9 @@ const Books = () => {
                             <p className="text-sm text-gray-600 mb-4">Try adding a new book to your {bookType} catalog.</p>
                             <button onClick={() => navigate(bookType === 'English' ? '/EnglishBooks/New' : '/MyanmarBooks/New')} className="px-4 py-2 bg-[#2E6BAA] text-white rounded-md hover:bg-opacity-90">Add New Book</button>
                         </div>
-                    ) : (
+                      ) : (
                         viewMode === 'grid' ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5">
                                 {books.map((book) => (
                                     <div key={book.id} className="bg-white/95 rounded-2xl shadow-md overflow-hidden hover:shadow-2xl transition-shadow duration-300 flex flex-col ring-1 ring-gray-100">
                                         <div className="relative pt-[100%] w-full max-w-[200px] mx-auto overflow-hidden">
@@ -435,7 +437,7 @@ const Books = () => {
                                 ))}
                             </div>
                         ) : (
-                            <div className="bg-white/95 shadow-md ring-1 ring-gray-100">
+                          <div className="bg-white/95 shadow-md ring-1 ring-gray-100">
                                 <div className="overflow-x-auto">
                                     <table className="min-w-[900px] w-full text-sm">
                                         <thead className="bg-gray-50">
@@ -482,7 +484,9 @@ const Books = () => {
                                 </div>
                             </div>
                         )
+                      )
                     )}
+
                 </div>
                 <div className="px-4 lg:px-8 pb-6">
                   <div className="mt-1 px-3 py-2 bg-white rounded-xl ring-1 ring-gray-200 flex items-center justify-between">
