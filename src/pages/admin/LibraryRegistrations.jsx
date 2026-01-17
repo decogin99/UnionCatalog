@@ -101,8 +101,9 @@ const LibraryRegistrations = () => {
   };
 
   useEffect(() => {
+    document.title = 'Admin Panel';
     fetchData();
-  }, []);
+  });
 
   const openDecline = (item) => {
     setDeclineId(item.publicId);
