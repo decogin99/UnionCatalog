@@ -78,20 +78,13 @@ const OTPVerification = () => {
         }
         setIsVerifying(true);
         const pendingUsername = sessionStorage.getItem('pendingUsername') || '';
-        const pendingUserType = sessionStorage.getItem('pendingUserType') || 'Library';
         try {
-            const res = await authService.verifyOTP(pendingUsername, otpValue, pendingUserType);
+            const res = await authService.verifyOTP(pendingUsername, otpValue, "Library");
             if (res?.success) {
                 setError('');
-                setUser({ email: pendingUsername, role: pendingUserType });
+                setUser(prev => ({ ...(prev || {}), email: pendingUsername }));
                 sessionStorage.removeItem('pendingUsername');
-                sessionStorage.removeItem('pendingUserType');
-                const routeByType = {
-                  SuperAdmin: '/Admin/Registrations',
-                  Admin: '/Admin',
-                  Library: '/Dashboard',
-                };
-                navigate(routeByType[pendingUserType] || '/Dashboard');
+                navigate('/Dashboard');
             } else {
                 setError(res?.message || 'Invalid OTP code. Please try again.');
                 setOtp(['', '', '', '', '', '']);

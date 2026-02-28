@@ -1,11 +1,17 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 import { libraryService } from '../services/libraryService';
+import { useAuth } from "../context/AuthProvider.jsx";
+import FreeUsageDialog from '../components/common/FreeUsageDialog';
 
 
 const DDCView = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [freePromptOpen, setFreePromptOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [rows, setRows] = useState([]);
@@ -27,7 +33,13 @@ const DDCView = () => {
           const list = Array.isArray(res?.data?.result) ? res.data.result : (Array.isArray(res?.data) ? res.data : []);
           if (mounted) setRows(list);
         } else {
-          if (mounted) setError(res?.message || 'Failed to load DDC codes');
+          if (mounted) setError(
+            res?.message
+              ? res.message === 'Unauthorized'
+                ? 'User unauthorized! Please login again.'
+                : res.message
+              : 'Fail to load verified libraries'
+          );
         }
       } catch (err) {
         if (mounted) setError(err?.message || 'Failed to load DDC codes');
@@ -118,12 +130,12 @@ const DDCView = () => {
                       return (
                         <tr key={cls}
                             className="border-t border-white/40 hover:bg-gray-100 cursor-pointer"
-                            onClick={() => { if (topClickable) setCurrentDdc(String(cls).trim()); }}
+                            onClick={() => { if (topClickable) { if (user?.libraryAccess === 'Free') { setFreePromptOpen(true); return; } setCurrentDdc(String(cls).trim()); } }}
                             title={topClickable ? 'Drill down' : undefined}
                         >
                           <td
                             className={`p-5 font-semibold text-gray-800 ${topClickable ? 'cursor-pointer text-[#0C2D57]' : ''}`}
-                            onClick={() => { if (topClickable) setCurrentDdc(String(cls).trim()); }}
+                            onClick={() => { if (topClickable) { if (user?.libraryAccess === 'Free') { setFreePromptOpen(true); return; } setCurrentDdc(String(cls).trim()); } }}
                             title={topClickable ? 'Drill down' : undefined}
                           >
                             {cls}
@@ -141,6 +153,14 @@ const DDCView = () => {
           </div>
         </div>
       </div>
+      <FreeUsageDialog
+        open={freePromptOpen}
+        onClose={() => setFreePromptOpen(false)}
+        onVerify={() => { setFreePromptOpen(false); navigate('/LibraryVerify'); }}
+        libraryName={user?.libraryName || ''}
+        userType={user?.libraryAccess || 'Free'}
+        title="Limited Access"
+      />
     </div>
   );
 };

@@ -2,11 +2,13 @@ import api from "../axios.config";
 
 export const authService = {
   login: async (username, password, rememberMe = false) => {
+    const userType = "Library";
     try {
       const response = await api.post("/auth/login", {
         username,
         password,
         rememberMe,
+        userType
       });
 
       return response;
@@ -58,11 +60,6 @@ export const authService = {
       fd.append('Township', form.township);
       fd.append('StateDivision', form.stateDivision);
       fd.append('Address', form.address);
-      if (form.documentFile) {
-        fd.append('DocumentFile', form.documentFile);
-      } else {
-        fd.append('DocumentFile', null);
-      }
       const response = await api.post('auth/library/register', fd);
       return response;
     } catch (error) {
@@ -131,9 +128,33 @@ export const authService = {
     }
   },
 
+  validateEmailToken: async (token, email, userType) => {
+    try {
+      const response = await api.get('auth/validate-email-token', { token, email, userType });
+      return response;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+
   confirmResetPassword: async (token, email, userType, newPassword) => {
     try {
       const response = await api.post('auth/confirm-reset-password', {
+        Token: token,
+        Email: email,
+        UserType: userType,
+        NewPassword: newPassword,
+      });
+      return response;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  confirmSetPassword: async (token, email, userType, newPassword) => {
+    try {
+      const response = await api.post('auth/confirm-set-password', {
         Token: token,
         Email: email,
         UserType: userType,

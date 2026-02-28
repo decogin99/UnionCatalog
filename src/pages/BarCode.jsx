@@ -1,102 +1,79 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 import BarcodePrint from '../components/barcode/BarcodePrint';
+import Barcode from 'react-barcode';
+import { useAuth } from "../context/AuthProvider.jsx";
 import { libraryService } from '../services/libraryService';
+import FreeUsageDialog from '../components/common/FreeUsageDialog';
 
-const parseBarcodeId = (id) => {
-  const s = (id || '').trim();
-  if (!s) return { prefix: '', num: NaN, pad: 0 };
-  const m = s.match(/^([A-Za-z]+)(\d+)$/);
-  if (!m) return { prefix: '', num: NaN, pad: 0 };
-  return { prefix: m[1], num: parseInt(m[2], 10), pad: m[2].length };
-};
+// const parseBarcodeId = (id) => {
+//   const s = (id || '').trim();
+//   if (!s) return { prefix: '', num: NaN, pad: 0 };
+//   const m = s.match(/^([A-Za-z]+)(\d+)$/);
+//   if (!m) return { prefix: '', num: NaN, pad: 0 };
+//   return { prefix: m[1], num: parseInt(m[2], 10), pad: m[2].length };
+// };
 
-const padNumber = (n, width) => {
-  const s = String(n);
-  if (s.length >= width) return s;
-  return '0'.repeat(width - s.length) + s;
-};
-
-const BarcodeTile = ({ code }) => {
-  const stripes = useMemo(() => Array.from({ length: 50 }, (_, i) => i), [code]);
-  return (
-    <div className="barcode-tile">
-      <svg className="bars-svg" viewBox="0 0 100 60" preserveAspectRatio="none">
-        {stripes.map((i) => (
-          <rect key={i} x={i * 2} y={0} width={1} height={60} fill="#000" />
-        ))}
-      </svg>
-      <div className="code">{code}</div>
-    </div>
-  );
-};
+// const padNumber = (n, width) => {
+//   const s = String(n);
+//   if (s.length >= width) return s;
+//   return '0'.repeat(width - s.length) + s;
+// };
 
 const BarCode = () => {
+
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [fromId, setFromId] = useState('');
-  const [toId, setToId] = useState('');
+  const [freePromptOpen, setFreePromptOpen] = useState(false);
   const [bookType, setBookType] = useState('English');
-  // const [sourceMode, setSourceMode] = useState('Raw'); // 'Raw' or 'Available'
-  const [sourceMode, setSourceMode] = useState('Available');
-  const [count, setCount] = useState(0);
-  const [startCode, setStartCode] = useState('');
-  const [availableCodes, setAvailableCodes] = useState([]);
   const [error, setError] = useState('');
-  const [generating, setGenerating] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [availableCodes, setAvailableCodes] = useState([]);
+  const [selectedCodes, setSelectedCodes] = useState([]);
+  const [printCodes, setPrintCodes] = useState([]);
+  const [printOpen, setPrintOpen] = useState(false);
 
   useEffect(() => {
     document.title = 'Barcode Generator';
   }, []);
 
-  const handleGenerate = async (e) => {
-    e.preventDefault();
+  useEffect(() => {
+    fetchBarcodeList();
+  }, [bookType]);
+
+  const fetchBarcodeList = async () => {
+    setLoading(true);
     setError('');
-    const from = parseBarcodeId(fromId);
-    const to = parseBarcodeId(toId);
-    if (Number.isNaN(from.num) || Number.isNaN(to.num)) {
-      setError('Invalid Barcode ID.');
-      return;
-    }
-
-    if (sourceMode === 'Available') {
-      setGenerating(true);
-      setCount(0);
-      setStartCode('');
-      setAvailableCodes([]);
-      try {
-        const res = await libraryService.getBarCodeRange(bookType, fromId.trim(), toId.trim());
-        if (res?.success) {
-          const ids = Array.isArray(res?.data?.result) ? res.data.result : [];
-          setAvailableCodes(ids);
-          setCount(ids.length);
-          setStartCode(ids[0] || '');
-          if (!ids.length) setError('No barcodes found in the specified range.');
-        } else {
-          setError(res?.message || 'Failed to fetch available barcodes');
-        }
-      } catch (err) {
-        setError(err?.message || 'Failed to fetch available barcodes');
-      } finally {
-        setGenerating(false);
-      }
-      return;
-    }
-
-    const prefix = from.prefix || to.prefix;
-    const start = Math.min(from.num, to.num);
-    const end = Math.max(from.num, to.num);
-    const width = Math.max(from.pad, to.pad);
-    setGenerating(true);
     setAvailableCodes([]);
-    setCount(0);
-    setStartCode('');
-    setTimeout(() => {
-      setCount(end - start + 1);
-      setStartCode(`${prefix}${padNumber(start, width)}`);
-      setGenerating(false);
-    }, 2000);
-  };
+    setSelectedCodes([]);
+    setPrintCodes([]);
+    try {
+      const res = await libraryService.getBarcodeList(bookType);
+      if (res?.success) {
+        const r = res?.data?.result ?? res?.result ?? res?.data ?? [];
+        const list = Array.isArray(r) ? r.map(x => String(x)) : [];
+        setAvailableCodes(list);
+      }
+      else{
+        setError(
+          res?.message
+            ? res.message === 'Unauthorized'
+              ? 'User unauthorized! Please login again.'
+              : res.message
+            : 'Fail to load barcodes'
+        )
+        return;
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to load barcodes.');
+    } finally {
+      setLoading(false);
+    }
+  }
+  
 
 
   return (
@@ -109,46 +86,32 @@ const BarCode = () => {
             <h1 className="text-2xl font-bold text-gray-900">Barcode Generator</h1>
           </div>
 
-          <form onSubmit={handleGenerate} className="no-print grid grid-cols-1 md:grid-cols-5 gap-3 mb-4">
-            <div className="flex items-center gap-4 px-4 py-3 bg-white border border-gray-200 rounded-xl">
-              {/* <label className="inline-flex items-center gap-2 text-sm text-gray-800">
-                <input type="radio" name="bc-source" value="Raw" checked={sourceMode==='Raw'} onChange={(e)=>setSourceMode(e.target.value)} />
-                Raw
-              </label> */}
-              <label className="inline-flex items-center gap-2 text-sm text-gray-800">
-                <input type="radio" name="bc-source" value="Available" checked={sourceMode==='Available'} onChange={(e)=>setSourceMode(e.target.value)} />
-                Available Books
-              </label>
-            </div>
-            <select
+          <form className="no-print">
+            <div className="flex mb-4 space-x-2">
+              <select
               value={bookType}
               onChange={(e) => setBookType(e.target.value)}
-              className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]"
-            >
-              <option value="English">English</option>
-              <option value="Myanmar">Myanmar</option>
-            </select>
-            <input
-              type="text"
-              placeholder="From BarcodeID (e.g E0000001)"
-              value={fromId}
-              onChange={(e) => setFromId(e.target.value)}
-              className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]"
-            />
-            <input
-              type="text"
-              placeholder="To BarcodeID (e.g E0000040)"
-              value={toId}
-              onChange={(e) => setToId(e.target.value)}
-              className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]"
-            />
-            <button
-              type="submit"
-              disabled={generating}
-              className="px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl"
-            >
-              {generating ? 'Generating...' : 'Generate Barcodes'}
-            </button>
+              className="px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]"
+              >
+                <option value="English">English</option>
+                <option value="Myanmar">Myanmar</option>
+              </select>
+              <button
+                type="button"
+                onClick={()=>{ if (user?.libraryAccess === 'Free') { setFreePromptOpen(true); return; } fetchBarcodeList(); }}
+                className="px-4 py-3 mr-auto bg-green-600 hover:bg-green-700 text-white rounded-xl disabled:opacity-60"
+              >
+                {loading ? 'Loading...' : 'Refresh'}
+              </button>
+              <button
+                type="button"
+                disabled={loading || selectedCodes.length === 0}
+                onClick={()=>{ if (user?.libraryAccess === 'Free') { setFreePromptOpen(true); return; } if (selectedCodes.length === 0) { setError('Please select at least one barcode'); return; } setPrintCodes(selectedCodes.slice()); setPrintOpen(true); }}
+                className="px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl disabled:opacity-60"
+              >
+                {loading ? 'Loading...' : 'Generate'}
+              </button>
+            </div>
           </form>
 
           {error && (
@@ -157,27 +120,74 @@ const BarCode = () => {
             </div>
           )}
 
-          <div className="print-grid">
-            {sourceMode === 'Available' ? (
-              availableCodes.length > 0 ? (
-                <BarcodePrint codes={availableCodes} />
-              ) : (
-                <div className="no-print flex justify-center items-center h-64 border-2 border-dashed border-gray-300 rounded-xl bg-white">
-                  <p className="text-gray-500">No barcodes to display.</p>
-                </div>
-              )
+          <div className="bg-white rounded-2xl shadow ring-1 ring-gray-100 p-6">
+            {availableCodes.length === 0 ? (
+              <div className="no-print flex justify-center items-center h-64 border-2 border-dashed border-gray-300 rounded-xl bg-white">
+                <p className="text-gray-500">No barcode to display.</p>
+              </div>
             ) : (
-              count > 0 ? (
-                <BarcodePrint count={count} startCode={startCode || 'E0000001'} />
-              ) : (
-                <div className="no-print flex justify-center items-center h-64 border-2 border-dashed border-gray-300 rounded-xl bg-white">
-                  <p className="text-gray-500">No barcodes to display.</p>
+              <>
+                <div className="mb-3 flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-gray-900">Available Barcodes</h2>
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => setSelectedCodes(availableCodes.slice())} className="px-3 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200">Select All</button>
+                    <button type="button" onClick={() => setSelectedCodes([])} className="px-3 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200">Clear</button>
+                  </div>
                 </div>
-              )
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 max-h-[500px] overflow-auto">
+                  {availableCodes.map(code => {
+                    const selected = selectedCodes.includes(code);
+                    return (
+                      <div
+                        key={code}
+                        onClick={() => setSelectedCodes(curr => curr.includes(code) ? curr.filter(c => c !== code) : [...curr, code])}
+                        className={`cursor-pointer rounded-lg border ${selected ? 'border-[#2E6BAA] ring-2 ring-[#2E6BAA]/40' : 'border-gray-200'} bg-white p-3 hover:shadow`}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-medium text-gray-700">{code}</span>
+                          <input type="checkbox" readOnly checked={selected} className="accent-[#2E6BAA]" />
+                        </div>
+                        <div className="flex items-center justify-center">
+                          <Barcode value={code} format="CODE128" renderer="svg" displayValue={false} height={50} width={1.6} margin={0} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
             )}
           </div>
+
+          {/* <div className="hidden"></div> */}
         </div>
       </div>
+
+      {printOpen && (
+        <>
+          <style>{`@media print { .barcode-modal { position: static !important; inset: auto !important; display: block !important; } .barcode-modal .overlay { display: none !important; } .barcode-modal .modal-content { position: static !important; width: auto !important; max-width: none !important; padding: 0 !important; box-shadow: none !important; border-radius: 0 !important; } }`}</style>
+          <div className="barcode-modal fixed inset-0 z-50 flex items-center justify-center">
+            <div className="overlay absolute inset-0 bg-black/40" onClick={() => setPrintOpen(false)}></div>
+            <div className="modal-content relative bg-white rounded-2xl shadow-xl w-full max-w-5xl p-4 ring-1 ring-gray-100">
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-lg font-semibold text-gray-800">Barcodes Preview</h2>
+                <button type="button" onClick={() => setPrintOpen(false)} className="px-3 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200">Close</button>
+              </div>
+              <div className="print-grid">
+                <BarcodePrint codes={printCodes} />
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      <FreeUsageDialog
+        open={freePromptOpen}
+        onClose={() => setFreePromptOpen(false)}
+        onVerify={() => { setFreePromptOpen(false); navigate('/LibraryVerify'); }}
+        libraryName={user?.libraryName || ''}
+        userType={user?.libraryAccess || 'Free'}
+        title="Limited Access"
+      />
     </div>
   );
 };

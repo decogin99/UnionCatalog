@@ -6,7 +6,7 @@ const API_URL = import.meta.env.VITE_API_BASE_URL;
 export const axiosInstance = axios.create({
   baseURL: API_URL,
   withCredentials: true,
-  timeout: 20000,
+  timeout: 1000000,
 });
 
 /**
@@ -35,7 +35,7 @@ export const handleNetworkError = (error) => {
     error.code === "ECONNABORTED" ||
     error.message.includes("timeout")
   ) {
-    return "Request timed out.";
+    return "Please try again.";
   } else if (!navigator.onLine) {
     console.error("No internet connection.");
     return "No internet connection.";

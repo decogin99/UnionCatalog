@@ -1,14 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FiCamera, FiEye, FiEdit2 } from 'react-icons/fi';
+import { MdVerified, MdWorkspacePremium } from "react-icons/md";
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 import profilePlaceholder from '../assets/profile-placeholder.png';
 import { libraryService } from '../services/libraryService';
-import { bookService } from '../services/bookService';
 import { useAuth } from '../context/AuthProvider.jsx';
+import LibraryPublicView from '../components/LibraryPublicView';
 
 const Profile = () => {
   const { setUser } = useAuth();
+  const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -28,8 +31,6 @@ const Profile = () => {
   const [libraryCoverFile, setLibraryCoverFile] = useState(null);
   const [removeLibraryPhoto, setRemoveLibraryPhoto] = useState(false);
   const [removeLibraryCover, setRemoveLibraryCover] = useState(false);
-  const [books, setBooks] = useState([]);
-  const [booksLoading, setBooksLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     LibraryName: '',
@@ -43,6 +44,8 @@ const Profile = () => {
     Address: '',
     LibraryCover: '',
     LibraryPhoto: '',
+    LibraryAccess : '',
+    LibraryVisibility : '',
     BookCount: 0,
   });
 
@@ -68,29 +71,43 @@ const Profile = () => {
     (async () => {
       try {
         const res = await libraryService.getLibraryProfile();
-        const data = res?.data?.result ?? res?.result ?? res ?? {};
-        const merged = {
-          LibraryName: data.LibraryName ?? data.libraryName ?? '',
-          LibraryType: data.LibraryType ?? data.libraryType ?? '',
-          OwnerName: data.OwnerName ?? data.ownerName ?? '',
-          ContactPerson: data.ContactPerson ?? data.contactPerson ?? '',
-          Email: data.Email ?? data.email ?? '',
-          PhoneNumber: data.PhoneNumber ?? data.phoneNumber ?? '',
-          Township: data.Township ?? data.township ?? '',
-          StateDivision: data.StateDivision ?? data.stateDivision ?? '',
-          Address: data.Address ?? data.address ?? '',
-          LibraryCover: data.LibraryCover ?? data.libraryCover ?? '',
-          LibraryPhoto: data.LibraryPhoto ?? data.libraryPhoto ?? '',
-          BookCount: data.BookCount ?? data.bookCount ?? 0,
-        };
-        if (mounted) {
-          setFormData(merged);
-          setProfileImage(makeProfileUrl(merged.LibraryPhoto) || profilePlaceholder);
-          setCoverImage(makeCoverUrl(merged.LibraryCover));
-          setRemoveLibraryPhoto(false);
-          setRemoveLibraryCover(false);
-          setLibraryPhotoFile(null);
-          setLibraryCoverFile(null);
+        if(res?.success) {
+          const data = res?.data?.result ?? res?.result ?? res ?? {};
+          const merged = {
+            LibraryName: data.LibraryName ?? data.libraryName ?? '',
+            LibraryType: data.LibraryType ?? data.libraryType ?? '',
+            OwnerName: data.OwnerName ?? data.ownerName ?? '',
+            ContactPerson: data.ContactPerson ?? data.contactPerson ?? '',
+            Email: data.Email ?? data.email ?? '',
+            PhoneNumber: data.PhoneNumber ?? data.phoneNumber ?? '',
+            Township: data.Township ?? data.township ?? '',
+            StateDivision: data.StateDivision ?? data.stateDivision ?? '',
+            Address: data.Address ?? data.address ?? '',
+            LibraryCover: data.LibraryCover ?? data.libraryCover ?? '',
+            LibraryPhoto: data.LibraryPhoto ?? data.libraryPhoto ?? '',
+            LibraryAccess : data.LibraryAccess ?? data.libraryAccess ?? '',
+            LibraryVisibility : data.LibraryVisibility ?? data.libraryVisibility ?? '',
+            BookCount: data.BookCount ?? data.bookCount ?? 0,
+          };
+          if (mounted) {
+            setFormData(merged);
+            setProfileImage(makeProfileUrl(merged.LibraryPhoto) || profilePlaceholder);
+            setCoverImage(makeCoverUrl(merged.LibraryCover));
+            setRemoveLibraryPhoto(false);
+            setRemoveLibraryCover(false);
+            setLibraryPhotoFile(null);
+            setLibraryCoverFile(null);
+          }
+        }
+        else{
+          setError(
+            res?.message
+              ? res.message === 'Unauthorized'
+                ? 'User unauthorized! Please login again.'
+                : res.message
+              : 'Fail to load verified libraries'
+          );
+          return;
         }
       } catch (err) {
         if (mounted) setError(err?.message || 'Failed to load profile');
@@ -129,51 +146,8 @@ const Profile = () => {
     if (coverInputRef.current) coverInputRef.current.value = '';
   };
 
-  const normalizeBooks = (res, type) => {
-    if (!res?.success) return [];
-    const container = res?.data?.result ?? res?.result ?? res?.data ?? {};
-    const raw = Array.isArray(container.Items)
-      ? container.Items
-      : Array.isArray(container.items)
-      ? container.items
-      : Array.isArray(container)
-      ? container
-      : [];
-    return raw.map((b) => {
-      const coverFile = b.BookCover ?? b.bookCover ?? '';
-      const cover = coverFile ? `${imageBase}/libraryBookCovers/${type === 'English' ? 'englishBooks' : 'myanmarBooks'}/${coverFile}` : '';
-      return {
-        id: b.BookId ?? b.bookId ?? b.Id ?? b.id,
-        title: b.Title ?? b.title ?? '',
-        cover,
-      };
-    });
-  };
-
   useEffect(() => {
-    if (!previewMode) return;
-    let mounted = true;
-    (async () => {
-      setBooksLoading(true);
-      try {
-        const [eng, mm] = await Promise.all([
-          bookService.getBookList(1, 'English'),
-          bookService.getBookList(1, 'Myanmar'),
-        ]);
-        const list = [...normalizeBooks(eng, 'English'), ...normalizeBooks(mm, 'Myanmar')];
-        if (mounted) setBooks(list);
-      } catch (err) {
-        console.log(err)
-        if (mounted) setBooks([]);
-      } finally {
-        if (mounted) setBooksLoading(false);
-      }
-    })();
-    return () => { mounted = false; };
-  }, [previewMode]);
-
-  useEffect(() => {
-    document.title = "Profile"
+    document.title = "Your Library"
   }, []);
 
   const setField = (name, value) => {
@@ -257,14 +231,14 @@ const Profile = () => {
 
           {!isLoading && !error && (
             <>
-              <div className="relative z-0 mb-6 rounded-xl overflow-hidden ring-1 ring-white/20">
-                {coverImage ? (
-                  <img src={coverImage} alt="Cover" className="w-full h-64 sm:h-80 object-cover" />
-                ) : (
-                  <div className="w-full h-64 sm:h-80 bg-gradient-to-r from-[#1B4B8A] via-[#1B4B8A] to-[#2E6BAA]" />
-                )}
+              {!previewMode && (
+                <div className="relative z-0 mb-6 rounded-xl overflow-hidden ring-1 ring-white/20">
+                  {coverImage ? (
+                    <img src={coverImage} alt="Cover" className="w-full h-64 sm:h-100 object-cover" />
+                  ) : (
+                    <div className="w-full h-64 sm:h-80 bg-gradient-to-r from-[#1B4B8A] via-[#1B4B8A] to-[#2E6BAA]" />
+                  )}
 
-                {!previewMode && (
                   <div className="absolute top-3 right-3 flex gap-2">
                     <button
                       type="button"
@@ -283,70 +257,30 @@ const Profile = () => {
                       Remove Cover
                     </button>
                   </div>
-                )}
-                <input
-                  type="file"
-                  ref={coverInputRef}
-                  onChange={handleCoverChange}
-                  accept="image/*"
-                  className="hidden"
-                />
-              </div>
-              {previewMode && (
-                <div className="relative z-10 flex items-center gap-4 px-6 -mt-12 sm:-mt-14">
-                  <img src={profileImage} alt="" className="w-28 h-28 rounded-full object-cover ring-4 ring-white shadow-md" />
-                  <div className="text-2xl font-bold text-black">
-                    {formData.LibraryName}
-                    <br></br>
-                    <span className="text-sm text-gray-600 absolute">{formData.LibraryType}</span>
-                  </div>
+                  <input
+                    type="file"
+                    ref={coverInputRef}
+                    onChange={handleCoverChange}
+                    accept="image/*"
+                    className="hidden"
+                  />
                 </div>
               )}
 
               {previewMode ? (
-                <div className="bg-white rounded-lg shadow-md p-6 mt-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <div className="text-xs uppercase text-gray-500">Email</div>
-                      <div className="text-gray-900">{formData.Email}</div>
-                    </div>
-                    <div>
-                      <div className="text-xs uppercase text-gray-500">Phone</div>
-                      <div className="text-gray-900">{formData.PhoneNumber}</div>
-                    </div>
-                    <div>
-                      <div className="text-xs uppercase text-gray-500">Location</div>
-                      <div className="text-gray-900">{formData.Township}, {formData.StateDivision}</div>
-                    </div>
-                    <div>
-                      <div className="text-xs uppercase text-gray-500">Address</div>
-                      <div className="text-gray-900">{formData.Address}</div>
-                    </div>
-                  </div>
-                  <div className="mt-6">
-                    <div className="text-sm font-semibold text-gray-800 mb-3">Books</div>
-                    {booksLoading ? (
-                      <div className="flex justify-center items-center h-20">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#2E6BAA]"></div>
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
-                        {books.map((b) => (
-                          <div key={b.id} className="bg-white rounded-md shadow-sm overflow-hidden ring-1 ring-gray-100">
-                            <div className="aspect-[2/3] bg-gray-100">
-                              {b.cover ? (
-                                <img src={b.cover} alt={b.title} className="w-full h-full object-cover" />
-                              ) : (
-                                <div className="w-full h-full bg-gray-200" />
-                              )}
-                            </div>
-                            <div className="m-2 text-[11px] font-medium text-gray-800 h-9 overflow-hidden">{b.title}</div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <LibraryPublicView
+                  profileImageUrl={profileImage}
+                  coverImageUrl={coverImage}
+                  libraryName={formData.LibraryName}
+                  libraryType={formData.LibraryType}
+                  libraryAccess={formData.LibraryAccess}
+                  libraryVisibility={formData.LibraryVisibility}
+                  email={formData.Email}
+                  phoneNumber={formData.PhoneNumber}
+                  township={formData.Township}
+                  stateDivision={formData.StateDivision}
+                  address={formData.Address}
+                />
               ) : (
                 <div className="bg-white rounded-lg shadow-md p-6">
                   <form onSubmit={handleSubmit} className="space-y-5 font-medium">
@@ -373,9 +307,26 @@ const Profile = () => {
                       </div>
                     </div>
                     <div>
-                      <div className="text-2xl font-semibold text-gray-900">{formData.LibraryName}</div>
-                      <div className="text-md text-gray-600">{formData.LibraryType}</div>
-
+                      <div className="text-2xl font-semibold text-gray-900">
+                        {formData.LibraryName}
+                        {formData.LibraryAccess === 'Verified' && (
+                          <span className="ml-2 inline-flex align-middle text-[#2E6BAA]" title="Verified Library"><MdVerified size={20} /></span>
+                        )}
+                        {formData.LibraryAccess === 'Premium' && (
+                          <span className="ml-2 inline-flex align-middle text-[#D4AF37]" title="Premium Library"><MdWorkspacePremium size={20} /></span>
+                        )}
+                      </div>
+                      <div className="text-md text-gray-600">
+                        {formData.LibraryType}
+                      </div>
+                      <div className='mt-2'>
+                        <span onClick={() => navigate('/Settings')} className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium ring-1 cursor-pointer 
+                        ${formData?.LibraryVisibility === 'Private' ? 'bg-red-50 text-red-700 ring-red-200' : 
+                          'bg-green-50 text-green-700 ring-green-200'}`}
+                        >
+                          Visibility : {formData?.LibraryVisibility}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
@@ -495,7 +446,7 @@ const Profile = () => {
                     <button
                       type="submit"
                       disabled={submitLoading}
-                      className={`w-full sm:w-44 px-4 py-2 rounded-lg bg-[#2E6BAA] text-white hover:bg-opacity-90 flex items-center justify-center gap-2 min-h-[44px] ${submitLoading ? 'opacity-70' : ''}`}
+                      className={`w-full sm:w-44 px-4 py-2 rounded-lg bg-[#2E6BAA] hover:bg-[#1B4B8A] text-white hover:bg-opacity-90 flex items-center justify-center gap-2 min-h-[44px] ${submitLoading ? 'opacity-70' : ''}`}
                     >
                       {submitLoading ? (
                         <>

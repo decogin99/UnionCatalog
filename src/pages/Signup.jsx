@@ -14,7 +14,6 @@ const Signup = () => {
         township: '',
         stateDivision: '',
         address: '',
-        documentFile: null,
         agreeToTerms: false
     });
 
@@ -36,11 +35,11 @@ const Signup = () => {
         }));
     };
 
-    const handleFileChange = (e) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        setFormData(prev => ({ ...prev, documentFile: file }));
-    };
+    // const handleFileChange = (e) => {
+    //     const file = e.target.files?.[0];
+    //     if (!file) return;
+    //     setFormData(prev => ({ ...prev, documentFile: file }));
+    // };
 
     const validateForm = () => {
         const required = [
@@ -96,7 +95,6 @@ const Signup = () => {
                     township: '',
                     stateDivision: '',
                     address: '',
-                    documentFile: '',
                     agreeToTerms: false
                 });
             } else {
@@ -137,7 +135,10 @@ const Signup = () => {
                                 <FiCheck size={22} />
                             </div>
                             <h1 className="text-3xl sm:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#1B4B8A] to-[#2E6BAA] mt-2">Library Registration Successful</h1>
-                            <p className="mt-3 text-sm sm:text-base text-[#1B4B8A]">Wait for admin approval or check your registration status.</p>
+                            <p className="mt-7 text-sm sm:text-base text-green-600">Registration successful. Please check your email for verification instructions.</p>
+                            {/* <div className={`rounded-xl mt-5 px-4 py-3 text-sm bg-green-50 text-green-700 ring-1 ring-green-200`}>
+                                Registration successful. Please check your email for verification instructions.
+                            </div> */}
                         </>
                     ) : (
                         <>
@@ -216,102 +217,102 @@ const Signup = () => {
                             <div className='mb-3'>
                                 <Link to="/Login" className="text-[#2E6BAA] hover:underline">Back to Sign-in</Link>
                             </div>
-                            <div>
+                            {/* <div>
                                 <Link to="/Signup?check=true" className="text-[#2E6BAA] hover:underline">Check Registration</Link>
-                            </div>
+                            </div> */}
                         </div>
                     ) : (
                         <form onSubmit={handleSubmit} className="space-y-6 font-medium">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <input
-                            type="text"
-                            name="libraryName"
-                            placeholder="Library Name"
-                            value={formData.libraryName}
-                            onChange={handleChange}
-                            autoComplete='off'
-                            maxLength={200}
-                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]"
-                            required
-                        />
-                        <input
-                            type="text"
-                            name="libraryType"
-                            placeholder="Library Type"
-                            value={formData.libraryType}
-                            onChange={handleChange}
-                            autoComplete='off'
-                            maxLength={100}
-                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]"
-                            required
-                        />
-                        <input
-                            type="text"
-                            name="ownerName"
-                            placeholder="Owner Name"
-                            value={formData.ownerName}
-                            onChange={handleChange}
-                            autoComplete='off'
-                            maxLength={150}
-                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]"
-                            required
-                        />
-                        <input
-                            type="text"
-                            name="contactPerson"
-                            placeholder="Contact Person"
-                            value={formData.contactPerson}
-                            onChange={handleChange}
-                            autoComplete='off'
-                            maxLength={150}
-                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]"
-                            required
-                        />
-                        <input
-                            type="email"
-                            name="email"
-                            placeholder="Email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            autoComplete='off'
-                            maxLength={320}
-                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]"
-                            required
-                        />
-                        <input
-                            type="text"
-                            name="phoneNumber"
-                            placeholder="Phone Number"
-                            value={formData.phoneNumber}
-                            onChange={handleChange}
-                            autoComplete='off'
-                            maxLength={50}
-                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]"
-                            required
-                        />
-                        <input
-                            type="text"
-                            name="township"
-                            placeholder="Township"
-                            value={formData.township}
-                            onChange={handleChange}
-                            autoComplete='off'
-                            maxLength={100}
-                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]"
-                            required
-                        />
-                        <input
-                            type="text"
-                            name="stateDivision"
-                            placeholder="State/Division"
-                            value={formData.stateDivision}
-                            onChange={handleChange}
-                            autoComplete='off'
-                            maxLength={100}
-                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]"
-                            required
-                        />
-                    </div>
+                            <input
+                                type="text"
+                                name="libraryName"
+                                placeholder="Library Name"
+                                value={formData.libraryName}
+                                onChange={handleChange}
+                                autoComplete='off'
+                                maxLength={200}
+                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]"
+                                required
+                            />
+                            <input
+                                type="text"
+                                name="libraryType"
+                                placeholder="Library Type"
+                                value={formData.libraryType}
+                                onChange={handleChange}
+                                autoComplete='off'
+                                maxLength={100}
+                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]"
+                                required
+                            />
+                            <input
+                                type="text"
+                                name="ownerName"
+                                placeholder="Owner Name"
+                                value={formData.ownerName}
+                                onChange={handleChange}
+                                autoComplete='off'
+                                maxLength={150}
+                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]"
+                                required
+                            />
+                            <input
+                                type="text"
+                                name="contactPerson"
+                                placeholder="Contact Person"
+                                value={formData.contactPerson}
+                                onChange={handleChange}
+                                autoComplete='off'
+                                maxLength={150}
+                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]"
+                                required
+                            />
+                            <input
+                                type="email"
+                                name="email"
+                                placeholder="Email"
+                                value={formData.email}
+                                onChange={handleChange}
+                                autoComplete='off'
+                                maxLength={320}
+                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]"
+                                required
+                            />
+                            <input
+                                type="text"
+                                name="phoneNumber"
+                                placeholder="Phone Number"
+                                value={formData.phoneNumber}
+                                onChange={handleChange}
+                                autoComplete='off'
+                                maxLength={50}
+                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]"
+                                required
+                            />
+                            <input
+                                type="text"
+                                name="township"
+                                placeholder="Township"
+                                value={formData.township}
+                                onChange={handleChange}
+                                autoComplete='off'
+                                maxLength={100}
+                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]"
+                                required
+                            />
+                            <input
+                                type="text"
+                                name="stateDivision"
+                                placeholder="State/Division"
+                                value={formData.stateDivision}
+                                onChange={handleChange}
+                                autoComplete='off'
+                                maxLength={100}
+                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]"
+                                required
+                            />
+                        </div>
                     <textarea
                         name="address"
                         placeholder="Address"
@@ -323,7 +324,7 @@ const Signup = () => {
                         className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]"
                         required
                     />
-                    <div>
+                    {/* <div>
                         <input
                             type="file"
                             accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
@@ -333,7 +334,7 @@ const Signup = () => {
                         {formData.documentFile && (
                             <p className="mt-1 text-xs text-gray-500 break-all">Document attached</p>
                         )}
-                    </div>
+                    </div> */}
 
                     <div className="flex items-center">
                         <input
@@ -368,12 +369,12 @@ const Signup = () => {
                         <Link to="/Login" className="text-[#2E6BAA] hover:underline">
                             Sign in
                         </Link>
-                        <div className="mt-2">
+                        {/* <div className="mt-2">
                             <span className="text-gray-600">Already registered? </span>
                             <Link to="/Signup?check=true" className="text-[#2E6BAA] hover:underline">
                                 Check
                             </Link>
-                        </div>
+                        </div> */}
                     </div>
                     </form>
                     )

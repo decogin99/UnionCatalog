@@ -6,10 +6,13 @@ import {
   FiLogOut,
   FiUser,
   FiSettings,
-  FiTag,
   FiGrid,
+  FiBookOpen,
 } from "react-icons/fi";
-import { FaBarcode } from "react-icons/fa6";
+import { TbBookDownload } from "react-icons/tb";
+import { BsCardText } from "react-icons/bs";
+import { LuScanBarcode } from "react-icons/lu";
+import { MdVerified } from "react-icons/md";
 import { authService } from "../services/authService";
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
@@ -21,9 +24,14 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     { path: "/Dashboard", icon: <FiHome size={15} />, label: "Dashboard" },
     { path: "/EnglishBooks", icon: <FiBook size={15} />, label: "English Books" },
     { path: "/MyanmarBooks", icon: <FiBook size={15} />, label: "Myanmar Books" },
-    { path: "/Barcode", icon: <FaBarcode size={15} />, label: "Barcode Generator" },
-    { path: "/Label", icon: <FiTag size={15} />, label: "Label Generator" },
+    { path: "/Barcode", icon: <LuScanBarcode size={15} />, label: "Barcode Generator" },
+    { path: "/Label", icon: <BsCardText size={15} />, label: "Label Generator" },
     { path: "/DDC", icon: <FiGrid size={15} />, label: "DDC View" },
+    { path: "/MARC", icon: <TbBookDownload size={15} />, label: "MARC" },
+    // { path: "/MARC/Import", icon: <FiBookOpen size={15} />, label: "MARC Import" },
+    // { path: "/MARC/Import/Batches", icon: <FiBookOpen size={15} />, label: "Import Batches" },
+    // { path: "/MARC/Import/Review", icon: <FiBookOpen size={15} />, label: "Review Records" },
+    { path: "/LibraryVerify", icon: <MdVerified size={15} />, label: "Verify Library" },
     { path: "/Profile", icon: <FiUser size={15} />, label: "Profile" },
     { path: "/Settings", icon: <FiSettings size={15} />, label: "Settings" },
   ];

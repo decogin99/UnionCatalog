@@ -22,16 +22,18 @@ const Login = () => {
     try {
       const res = await authService.login(email, password, rememberMe);
       if (res?.success) {
-        const { token, userType, libraryName } = res.data || {};
-        if (token) {
-          setUser({ email, role: userType || "Library", libraryName: libraryName || '' });
-          sessionStorage.removeItem("pendingUsername");
-          sessionStorage.removeItem("pendingUserType");
-          navigate(userType === "SuperAdmin" ? "/Admin/Registrations" : "/Dashboard");
-        } else {
-          if (userType) sessionStorage.setItem("pendingUserType", userType);
-          sessionStorage.setItem("pendingUsername", email);
+        const user = res?.data?.user ?? res?.user ?? {};
+        const libraryName = user.Name ?? user.name ?? '';
+        const libraryAccess = user.Access ?? user.access ?? '';
+        setUser({ 
+          email,
+          libraryName: libraryName || '',
+          libraryAccess: libraryAccess === "Verifying" ? "Free" : libraryAccess || "Free" 
+        });
+        if (res.status === 202) {
           navigate("/OTPVerification");
+        } else if (res.status === 200) {
+          navigate("/Dashboard");
         }
       } else {
         setError(res?.message || "Invalid credentials");
@@ -144,12 +146,12 @@ const Login = () => {
             <Link to="/Signup" className="inline-flex items-center gap-2 text-[#2E6BAA] hover:underline font-medium">
               Register
             </Link>
-            <div className="mt-2">
+            {/* <div className="mt-2">
               <span className="text-gray-600">Already registered? </span>
               <Link to="/Signup?check=true" className="inline-flex items-center gap-2 text-[#2E6BAA] hover:underline font-medium">
                 Check
               </Link>
-            </div>
+            </div> */}
           </div>
         </form>
       </div>

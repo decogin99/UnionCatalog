@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { authService } from '../services/authService';
+import { libraryService } from '../services/libraryService';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 import AdminSidebar from '../components/admin/AdminSidebar';
@@ -23,6 +24,12 @@ const Settings = () => {
   const [twoFASuccess, setTwoFASuccess] = useState(null);
   const [twoFAFetchError, setTwoFAFetchError] = useState(false);
 
+  const [libraryVisibility, setLibraryVisibility] = useState('Private');
+  const [visLoading, setVisLoading] = useState(false);
+  const [visMessage, setVisMessage] = useState('');
+  const [visSuccess, setVisSuccess] = useState(null);
+  const [visFetchError, setVisFetchError] = useState(false);
+
   const fetchTwoFA = async () => {
     setTwoFALoading(true);
     try {
@@ -41,6 +48,7 @@ const Settings = () => {
   useEffect(() => {
     document.title = "Settings"
     fetchTwoFA();
+    fetchVisibility();
   }, []);
 
   const handleChangePassword = async (e) => {
@@ -77,7 +85,12 @@ const Settings = () => {
         setConfirmPassword('');
       } else {
         setPwSuccess(false);
-        setPwMessage(res?.message || 'Failed to change password');
+        setPwMessage(
+          res?.message
+            ? res.message === 'Unauthorized'
+              ? 'User unauthorized! Please login again.'
+              : res.message
+            : 'Fail to change password');
       }
     } catch (err) {
       setPwSuccess(false);
@@ -99,7 +112,12 @@ const Settings = () => {
         setTwoFAEnabled(!twoFAEnabled);
       } else {
         setTwoFASuccess(false);
-        setTwoFAMessage(res?.message || 'Failed to update 2FA');
+        setTwoFAMessage(
+          res?.message
+            ? res.message === 'Unauthorized'
+              ? 'User unauthorized! Please login again.'
+              : res.message
+            : 'Fail to update 2FA status');
       }
     } catch (err) {
       setTwoFASuccess(false);
@@ -107,6 +125,52 @@ const Settings = () => {
     } finally {
       setTwoFALoading(false);
       setTimeout(() => setTwoFAMessage(''), 3000);
+    }
+  };
+
+  const fetchVisibility = async () => {
+    setVisLoading(true);
+    setVisMessage('');
+    try {
+      const res = await libraryService.getVisibilityStatus();
+      const v = res?.data?.visStatus ?? res?.visStatus ?? 'Private';
+      setLibraryVisibility(v);
+      setVisFetchError(false);
+      setVisSuccess(null);
+    } catch (err) {
+      setVisFetchError(true);
+      setVisSuccess(false);
+      setVisMessage(err?.message || 'Failed to fetch visibility');
+    } finally {
+      setVisLoading(false);
+    }
+  };
+
+  const handleToggleVisibility = async () => {
+    setVisLoading(true);
+    setVisMessage('');
+    try {
+      const next = libraryVisibility === 'Private' ? 'Public' : 'Private';
+      const res = await libraryService.changeVisibilityStatus(next);
+      if (res?.success) {
+        setVisSuccess(true);
+        setLibraryVisibility(next);
+        setVisMessage(res?.message || 'Visibility updated');
+      } else {
+        setVisSuccess(false);
+        setVisMessage(
+          res?.message
+            ? res.message === 'Unauthorized'
+              ? 'User unauthorized! Please login again.'
+              : res.message
+            : 'Fail to update visibility');
+      }
+    } catch (err) {
+      setVisSuccess(false);
+      setVisMessage(err?.message || 'Failed to update visibility');
+    } finally {
+      setVisLoading(false);
+      setTimeout(() => setVisMessage(''), 5000);
     }
   };
 
@@ -127,6 +191,80 @@ const Settings = () => {
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Settings</h1>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-white rounded-xl p-6 shadow space-y-5">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900 mb-2">Two-Factor Authentication (2FA - Email)</h2>
+                <p className="text-xs text-gray-600 mb-3">Use 2FA to add an extra layer of security to your account.</p>
+
+                <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-700">Status: {twoFALoading ? (
+                        <span className="text-gray-600 italic">Loading...</span>
+                        ) : twoFAFetchError ? (
+                          <span className="text-red-700">Error</span>
+                        ) : (
+                          <strong className={`${twoFAEnabled ? 'text-green-700' : 'text-red-700'}`}>{twoFAEnabled ? 'ON' : 'OFF'}</strong>
+                        )}
+                    </span>
+                  <div className="flex items-center">
+                    {twoFALoading ? (
+                      <div className="relative inline-flex h-6 w-11 items-center justify-center">
+                        <svg className="animate-spin h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0a12 12 0 100 24v-4a8 8 0 01-8-8z"></path>
+                        </svg>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={handleToggleTwoFA}
+                        role="switch"
+                        aria-checked={twoFAEnabled}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${twoFAEnabled ? 'bg-green-600' : 'bg-gray-300'} cursor-pointer`}
+                      >
+                        <span className={`inline-block h-5 w-5 transform bg-white rounded-full shadow transition-transform ${twoFAEnabled ? 'translate-x-5' : 'translate-x-1'}`}></span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+                {twoFAMessage && (
+                  <div className={`text-xs mt-2 ${twoFASuccess ? 'text-green-700' : 'text-red-700'}`}>{twoFAMessage}</div>
+                )}
+              </div>
+
+              {user?.role !== 'SuperAdmin' && 
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900 mb-2">Library Visibility</h2>
+                  <p className="text-xs text-gray-600 mb-3">Control whether your library profile is visible to public users.</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-700">Status: {visLoading ? (
+                          <span className="text-gray-600 italic">Loading...</span>
+                          ) : visFetchError ? (
+                            <span className="text-red-700">Error</span>
+                          ) : (
+                            <strong className={`${libraryVisibility === 'Public' ? 'text-green-700' : 'text-red-700'}`}>{libraryVisibility}</strong>
+                          )}
+                      </span>
+                    {visLoading ? (
+                      <div className="relative inline-flex h-6 w-11 items-center justify-center">
+                        <svg className="animate-spin h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0a12 12 0 100 24v-4a8 8 0 01-8-8z"></path></svg>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={handleToggleVisibility}
+                        role="switch"
+                        aria-checked={libraryVisibility === 'Public'}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${libraryVisibility === 'Public' ? 'bg-green-600' : 'bg-gray-300'} cursor-pointer`}
+                      >
+                        <span className={`inline-block h-5 w-5 transform bg-white rounded-full shadow transition-transform ${libraryVisibility === 'Public' ? 'translate-x-5' : 'translate-x-1'}`}></span>
+                      </button>
+                    )}
+                  </div>
+                  {visMessage && (
+                    <div className={`text-xs mt-2 ${visSuccess ? 'text-green-700' : 'text-red-700'}`}>{visMessage}</div>
+                  )}
+                </div>
+              }
+            </div>
+            
             <div className="bg-white rounded-xl p-6 shadow">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Change Password</h2>
               {pwMessage && (
@@ -165,7 +303,7 @@ const Settings = () => {
                 <button
                   type="submit"
                   disabled={pwLoading}
-                  className="w-full sm:w-44 px-4 py-2 rounded-lg bg-[#2E6BAA] text-white hover:bg-opacity-90 flex items-center justify-center gap-2 min-h-[44px] disabled:opacity-70"
+                  className="w-full sm:w-44 px-4 py-2 rounded-lg bg-[#2E6BAA] hover:bg-[#1B4B8A] text-white hover:bg-opacity-90 flex items-center justify-center gap-2 min-h-[44px] disabled:opacity-70"
                 >
                   {pwLoading ? (
                     <>
@@ -180,43 +318,6 @@ const Settings = () => {
                   )}
                 </button>
               </form>
-            </div>
-
-            <div className="bg-white rounded-xl p-6 shadow">
-              <h2 className="text-lg font-semibold text-gray-900 mb-2">Two-Factor Authentication (2FA)</h2>
-              <p className="text-xs text-gray-600 mb-3">Use 2FA to add an extra layer of security to your account.</p>
-
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-700">Status: {twoFALoading ? (
-                  <span className="text-gray-600 italic">Loading...</span>
-                ) : twoFAFetchError ? (
-                  <span className="text-red-700">Error</span>
-                ) : (
-                  <strong className={`${twoFAEnabled ? 'text-green-700' : 'text-red-700'}`}>{twoFAEnabled ? 'ON' : 'OFF'}</strong>
-                )}</span>
-                <div className="flex items-center">
-                  {twoFALoading ? (
-                    <div className="relative inline-flex h-6 w-11 items-center justify-center">
-                      <svg className="animate-spin h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0a12 12 0 100 24v-4a8 8 0 01-8-8z"></path>
-                      </svg>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={handleToggleTwoFA}
-                      role="switch"
-                      aria-checked={twoFAEnabled}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${twoFAEnabled ? 'bg-green-600' : 'bg-gray-300'} cursor-pointer`}
-                    >
-                      <span className={`inline-block h-5 w-5 transform bg-white rounded-full shadow transition-transform ${twoFAEnabled ? 'translate-x-5' : 'translate-x-1'}`}></span>
-                    </button>
-                  )}
-                </div>
-              </div>
-              {twoFAMessage && (
-                <div className={`text-xs mt-2 ${twoFASuccess ? 'text-green-700' : 'text-red-700'}`}>{twoFAMessage}</div>
-              )}
             </div>
           </div>
         </div>

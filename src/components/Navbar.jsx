@@ -1,4 +1,5 @@
 import { FiMenu } from "react-icons/fi";
+import { MdVerified, MdWorkspacePremium } from "react-icons/md";
 import { useAuth } from "../context/AuthProvider.jsx";
 
 const Navbar = ({ toggleSidebar }) => {
@@ -18,18 +19,29 @@ const Navbar = ({ toggleSidebar }) => {
             {user?.libraryName ? (
               <>
                 <div className="text-lg font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/80">
-                  {user?.libraryName || 'Library Management System'}
+                  {user?.libraryName}
+                  {user?.libraryAccess === 'Verified' && (
+                    <span className="ml-2 inline-flex align-middle text-white"><MdVerified size={16} /></span>
+                  )}
+                  {user?.libraryAccess === 'Premium' && (
+                    <span className="ml-2 inline-flex align-middle text-[#D4AF37]"><MdWorkspacePremium size={16} /></span>
+                  )}
+                  {user?.libraryAccess !== 'Verified' && user?.libraryAccess !== 'Premium' && (
+                    <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ring-1 bg-gray-100 text-gray-700 ring-gray-300">
+                      {user?.libraryAccess}
+                    </span>
+                  )}
                 </div>
                 <div className="text-xs text-white/90 mt-0.5 hidden sm:block">Library Management System</div>
               </>
             ) : (
               <div className="text-lg font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/80">
-                {user?.libraryName || 'Library Management System'}
+                Library Management System
               </div>
             )}
           </div>
         </div>
-        <div className="flex items-center gap-3 text-white">
+        <div className="hidden sm:block items-center gap-3 text-white">
           <span className="text-sm">{user?.email || ''}</span>
         </div>
       </div>

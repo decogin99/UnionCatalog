@@ -1,13 +1,13 @@
 import api from "../axios.config";
 
 export const adminService = {
-  getLibraryList: async (pageNumber = 1, libraryName = "", status = "All", emailVerified = "All") => {
+  getLibraryList: async (pageNumber = 1, libraryName = "", libraryAccess = "All", libraryStatus = "Active") => {
     try {
       const res = await api.get("admin/get-library-list", {
         pageNumber,
         libraryName,
-        status,
-        emailVerified,
+        libraryAccess,
+        libraryStatus,
       });
       return res;
     } catch (error) {
@@ -15,10 +15,21 @@ export const adminService = {
     }
   },
   
-  approveLibrary: async (publicId) => {
+  approveLibrary: async (libraryId) => {
     try {
       const response = await api.post("admin/approve-library", null, {
-        params: { publicId : publicId },
+        params: { libraryId : libraryId },
+      });
+      return response;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  declineLibrary: async (libraryId) => {
+    try {
+      const response = await api.post("admin/decline-library", null, {
+        params: { libraryId : libraryId },
       });
       return response;
     } catch (error) {
@@ -59,11 +70,31 @@ export const adminService = {
     }
   },
 
-
-
   updateRegistrationStatus: async (id, action) => {
     try {
       const res = await api.post(`admin/library-registrations/${id}/${action}`);
+      return res;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  getLibraryProfile: async (profileId) => {
+      try {
+        const res = await api.get('admin/get-library-profile', {
+        params: { profileId }
+      });
+        return res;
+      } catch (error) {
+        throw error.response?.data || error.message;
+      }
+    },
+
+  getLibraryVerificationDetail: async (libraryId) => {
+    try {
+      const res = await api.get('admin/get-library-verification-detail', {
+        params: { libraryId }
+      });
       return res;
     } catch (error) {
       throw error.response?.data || error.message;

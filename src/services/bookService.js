@@ -11,7 +11,10 @@ export const bookService = {
     advAuthorTerm = "",
     advAuthorMode = "starts",
     advYearFrom = 0,
-    advYearTo = 0
+    advYearTo = 0,
+    profileId = null,
+    advDateFrom = "",
+    advDateTo = ""
   ) => {
     try {
       const res = await api.get('Book/get-book-list', {
@@ -25,6 +28,20 @@ export const bookService = {
         advAuthorMode,
         advYearFrom,
         advYearTo,
+        profileId,
+        advDateFrom,
+        advDateTo,
+      });
+      return res;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  getBookCopyList: async (bookId, bookType) => {
+    try {
+      const res = await api.get(`Book/get-book-copy-list/${bookId || '00000000-0000-0000-0000-000000000000'}`, {
+        bookType,
       });
       return res;
     } catch (error) {
@@ -39,8 +56,8 @@ export const bookService = {
 
       // Required
       fd.append('BookType', (bookType || '').trim());
-      fd.append('BarCodeId', (form.BarCodeId || '').trim());
       fd.append('Title', (form.Title || '').trim());
+      fd.append('Initial', (form.Initial || '').trim());
       fd.append('Author', (form.Author || '').trim());
 
       // Cover
@@ -53,10 +70,10 @@ export const bookService = {
       if (form.SubTitle && form.SubTitle.trim()) fd.append('SubTitle', form.SubTitle.trim());
       if (form.Edition && form.Edition.trim()) fd.append('Edition', form.Edition.trim());
       if (form.Publisher && form.Publisher.trim()) fd.append('Publisher', form.Publisher.trim());
-      if (form.Description && form.Description.trim()) fd.append('Description', form.Description.trim());
       if (form.Category && form.Category.trim()) fd.append('Category', form.Category.trim());
       if (form.SubjectHeadings && form.SubjectHeadings.trim()) fd.append('SubjectHeadings', form.SubjectHeadings.trim());
       if (form.AccessionNo && form.AccessionNo.trim()) fd.append('AccessionNo', form.AccessionNo.trim());
+      if (form.BarcodeNo && form.BarcodeNo.trim()) fd.append('BarcodeNo', form.BarcodeNo.trim());
       if (form.ClassNo && form.ClassNo.trim()) fd.append('ClassNo', form.ClassNo.trim());
       if (form.CallNo && form.CallNo.trim()) fd.append('CallNo', form.CallNo.trim());
       if (form.Translator && form.Translator.trim()) fd.append('Translator', form.Translator.trim());
@@ -64,6 +81,8 @@ export const bookService = {
       if (form.Place && form.Place.trim()) fd.append('Place', form.Place.trim());
       if (form.Pagination && form.Pagination.trim()) fd.append('Pagination', form.Pagination.trim());
       if (form.Illustration && form.Illustration.trim()) fd.append('Illustration', form.Illustration.trim());
+      if (form.Size && form.Size.trim()) fd.append('Size', form.Size.trim());
+      if (form.SOR && form.SOR.trim()) fd.append('SOR', form.SOR.trim()); 
       if (form.Summary && form.Summary.trim()) fd.append('Summary', form.Summary.trim());
       if (form.Remarks && form.Remarks.trim()) fd.append('Remarks', form.Remarks.trim());
       if (form.RegistrationDate) fd.append('RegistrationDate', form.RegistrationDate);
@@ -85,24 +104,26 @@ export const bookService = {
     }
   },
 
-  getBookDetails: async (bookId, bookType) => {
+  getBookInfo: async (bookId, bookType) => {
     try {
-      const res = await api.get(`Book/get-book-details/${bookId}`, { bookType });
+      const res = await api.get(`Book/get-book-info/${bookId || '00000000-0000-0000-0000-000000000000'}`, {
+        bookType,
+      });
       return res;
     } catch (error) {
       throw error.response?.data || error.message;
     }
   },
 
-  updateBook: async (bookId, form, bookType) => {
+  updateBookInfo: async (bookId, form, bookType) => {
     try {
       const fd = new FormData();
 
       // Required
       fd.append('BookId', String(bookId));
       fd.append('BookType', (bookType || '').trim());
-      fd.append('BarCodeId', (form.BarCodeId || '').trim());
       fd.append('Title', (form.Title || '').trim());
+      fd.append('Initial', (form.Initial || '').trim());
       fd.append('Author', (form.Author || '').trim());
 
       // Cover
@@ -115,17 +136,16 @@ export const bookService = {
       if (form.SubTitle && form.SubTitle.trim()) fd.append('SubTitle', form.SubTitle.trim());
       if (form.Edition && form.Edition.trim()) fd.append('Edition', form.Edition.trim());
       if (form.Publisher && form.Publisher.trim()) fd.append('Publisher', form.Publisher.trim());
-      if (form.Description && form.Description.trim()) fd.append('Description', form.Description.trim());
       if (form.Category && form.Category.trim()) fd.append('Category', form.Category.trim());
       if (form.SubjectHeadings && form.SubjectHeadings.trim()) fd.append('SubjectHeadings', form.SubjectHeadings.trim());
-      if (form.AccessionNo && form.AccessionNo.trim()) fd.append('AccessionNo', form.AccessionNo.trim());
       if (form.ClassNo && form.ClassNo.trim()) fd.append('ClassNo', form.ClassNo.trim());
-      if (form.CallNo && form.CallNo.trim()) fd.append('CallNo', form.CallNo.trim());
       if (form.Translator && form.Translator.trim()) fd.append('Translator', form.Translator.trim());
       if (form.Editor && form.Editor.trim()) fd.append('Editor', form.Editor.trim());
       if (form.Place && form.Place.trim()) fd.append('Place', form.Place.trim());
       if (form.Pagination && form.Pagination.trim()) fd.append('Pagination', form.Pagination.trim());
       if (form.Illustration && form.Illustration.trim()) fd.append('Illustration', form.Illustration.trim());
+      if (form.Size && form.Size.trim()) fd.append('Size', form.Size.trim());
+      if (form.SOR && form.SOR.trim()) fd.append('SOR', form.SOR.trim());
       if (form.Summary && form.Summary.trim()) fd.append('Summary', form.Summary.trim());
       if (form.Remarks && form.Remarks.trim()) fd.append('Remarks', form.Remarks.trim());
       if (form.RegistrationDate) fd.append('RegistrationDate', form.RegistrationDate);
@@ -135,12 +155,22 @@ export const bookService = {
       if (!Number.isNaN(year)) fd.append('PublishedYear', String(year));
       const pages = parseInt(form.NumberOfPages, 10);
       if (!Number.isNaN(pages)) fd.append('NumberOfPages', String(pages));
-      const copies = parseInt(form.NoOfCopies, 10);
-      if (!Number.isNaN(copies)) fd.append('NoOfCopies', String(copies));
       const price = parseFloat(form.Price);
       if (!Number.isNaN(price)) fd.append('Price', String(price));
 
-      const res = await api.put(`Book/update-book/${bookId}`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      const res = await api.put(`Book/update-book-info/${bookId}`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      return res;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  getBookDetails: async (bookId, bookType, publicId = null) => {
+    try {
+      const res = await api.get(`Book/get-book-details/${bookId || '00000000-0000-0000-0000-000000000000'}`, {
+        bookType,
+        publicId,
+      });
       return res;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -154,5 +184,33 @@ export const bookService = {
     } catch (error) {
       throw error.response?.data || error.message;
     }
-  }
+  },
+
+  addBookCopy: async (bookId, bookType) => {
+    try {
+      const res = await api.post(`Book/add-book-copy/${bookId || '00000000-0000-0000-0000-000000000000'}?bookType=${encodeURIComponent(bookType)}`);
+      return res;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  editBookCopy: async (bookCopyId, bookId, bookType, accessionNo, barCodeId) => {
+    try {
+      const acc = Number.parseInt(accessionNo, 10);
+      const res = await api.post(`Book/edit-book-copy/${bookCopyId}?bookId=${encodeURIComponent(bookId)}&bookType=${encodeURIComponent(bookType)}&accessionNo=${Number.isNaN(acc) ? '' : acc}&barCodeId=${encodeURIComponent(barCodeId || '')}`);
+      return res;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  deleteBookCopy: async (bookCopyId, bookType) => {
+    try {
+      const res = await api.delete(`Book/delete-book-copy/${bookCopyId}?bookType=${encodeURIComponent(bookType)}`);
+      return res;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
 };

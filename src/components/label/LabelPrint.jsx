@@ -35,6 +35,7 @@ export default function LabelPrint({ labels = [] }) {
         {labels.map((item, idx) => {
           const classNo = item.ClassNo ?? item.classNo ?? '';
           const title = item.Title ?? item.title ?? '';
+          const initial = item.Initial ?? item.initial ?? '';
           const author = item.Author ?? item.author ?? '';
           const accessionNo = item.AccessionNo ?? item.accessionNo ?? '';
           const middle = getMiddleText(author, title);
@@ -47,7 +48,11 @@ export default function LabelPrint({ labels = [] }) {
             >
               <div className="text-center leading-tight">
                 <div className="text-sm font-semibold text-gray-900">{classNo}</div>
-                <div className="text-base font-semibold text-gray-800 mt-[1mm]">{middle}</div>
+                {initial ? (
+                  <div className="text-base font-semibold text-gray-800 mt-[1mm]">{initial}</div>
+                ) : (
+                  <div className="text-base font-semibold text-gray-800 mt-[1mm]">{middle}</div>
+                )}
                 <div className="text-sm text-gray-900 mt-[1mm]">{accessionNo}</div>
               </div>
             </div>

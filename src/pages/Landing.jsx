@@ -86,18 +86,7 @@ const Landing = () => {
                                 </Link>
                             </div>
                         </div>
-                        <div className="flex-1 relative">
-                            <div className="w-full h-[500px] bg-white/10 rounded-2xl backdrop-blur-lg p-8 transform hover:scale-105 transition-all duration-300 shadow-xl shadow-black/20">
-                                <div className="grid grid-cols-2 gap-6 h-full">
-                                    {[1, 2, 3, 4].map((i) => (
-                                        <div key={i}
-                                            className={`bg-white/20 rounded-xl animate-pulse transition-all duration-500 hover:bg-white/30`}
-                                            style={{ animationDelay: `${i * 200}ms` }}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
+                        
                     </div>
                 </div>
             </div>
@@ -195,9 +184,9 @@ const Landing = () => {
 
 // Stats data
 const stats = [
-    { value: '10K+', label: 'Active Libraries' },
-    { value: '1M+', label: 'Books Cataloged' },
-    { value: '50K+', label: 'Daily Users' },
+    { value: '-', label: 'Active Libraries' },
+    { value: '-', label: 'Books Cataloged' },
+    { value: '-', label: 'Daily Users' },
     { value: '99.9%', label: 'Uptime' }
 ];
 

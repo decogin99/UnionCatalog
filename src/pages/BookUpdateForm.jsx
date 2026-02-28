@@ -35,11 +35,11 @@ const BookUpdateForm = () => {
     Category: '',
     SubjectHeadings: '',
     AccessionNo: '',
+    Initial: '',
     ClassNo: '',
     CallNo: '',
     Translator: '',
     Editor: '',
-    NoOfCopies: '',
     Place: '',
     Pagination: '',
     Illustration: '',
@@ -91,6 +91,7 @@ const BookUpdateForm = () => {
             Category: b.Category ?? b.category ?? '',
             SubjectHeadings: b.SubjectHeadings ?? b.subjectHeadings ?? '',
             AccessionNo: b.AccessionNo ?? b.accessionNo ?? '',
+            Initial: b.Initial ?? b.initial ?? '',
             ClassNo: b.ClassNo ?? b.classNo ?? '',
             CallNo: b.CallNo ?? b.callNo ?? '',
             Translator: b.Translator ?? b.translator ?? '',
@@ -138,7 +139,7 @@ const BookUpdateForm = () => {
   };
 
   const validate = () => {
-    if (!form.Title?.trim() || !form.BarCodeId?.trim()) {
+    if (!form.Title?.trim() || !form.BarCodeId?.trim() || !form.ClassNo?.trim()) {
       setSuccess(false);
       setMessage('Please fill all required * fields');
       return false;
@@ -183,7 +184,7 @@ const BookUpdateForm = () => {
       <div className="flex-1 lg:ml-64 mt-16 transition-all duration-300 overflow-y-auto">
         <div className="p-4 lg:px-8">
           <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-bold text-gray-900">Update Book ({bookType})</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Update ({bookType})</h1>
             <button onClick={cancel} className="px-3 py-2 rounded-md text-white bg-red-600 hover:bg-red-700">Cancel</button>
           </div>
 
@@ -203,7 +204,7 @@ const BookUpdateForm = () => {
               <div className="bg-white rounded-xl p-6 shadow space-y-4">
                 <div>
                   <label className="text-sm text-gray-700 mb-1 block">Book Type</label>
-                  <input type="text" value={bookType} disabled className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50" />
+                  <input type="text" value={bookType} disabled className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-100" />
                 </div>
                 <div>
                   <label className="text-sm text-gray-700 mb-1 block">Book Category</label>
@@ -212,6 +213,10 @@ const BookUpdateForm = () => {
                 <div>
                   <label className="text-sm text-gray-700 mb-1 block">Title <span className="text-red-600">*</span></label>
                   <input type="text" value={form.Title} onChange={(e) => setField('Title', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white" />
+                </div>
+                <div>
+                  <label className="text-sm text-gray-700 mb-1 block">Initial of (Author name)</label>
+                  <input type="text" value={form.Initial} onChange={(e) => setField('Initial', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white" />
                 </div>
                 <div>
                   <label className="text-sm text-gray-700 mb-1 block">Author</label>
@@ -240,7 +245,7 @@ const BookUpdateForm = () => {
                   <button
                     type="submit"
                     disabled={submitLoading}
-                    className={`w-full sm:w-44 px-4 py-2 rounded-lg bg-[#2E6BAA] text-white hover:bg-opacity-90 flex items-center justify-center gap-2 min-h-[44px] ${submitLoading ? 'opacity-70' : ''}`}
+                    className={`w-full sm:w-44 px-4 py-2 rounded-lg bg-[#2E6BAA] hover:bg-[#1B4B8A] text-white hover:bg-opacity-90 flex items-center justify-center gap-2 min-h-[44px] ${submitLoading ? 'opacity-70' : ''}`}
                   >
                     {submitLoading ? (
                       <>
@@ -260,16 +265,16 @@ const BookUpdateForm = () => {
               <div className="lg:col-span-2 bg-white rounded-xl p-6 shadow space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm text-gray-700 mb-1 block">Accession No</label>
-                    <input type="text" value={form.AccessionNo} onChange={(e) => setField('AccessionNo', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white" />
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-700 mb-1 block">Class No</label>
+                    <label className="text-sm text-gray-700 mb-1 block">Class No <span className="text-red-600">*</span></label>
                     <input type="text" value={form.ClassNo} onChange={(e) => setField('ClassNo', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white" />
                   </div>
                   <div>
+                    <label className="text-sm text-gray-700 mb-1 block">Accession No</label>
+                    <input type="text" value={form.AccessionNo} onChange={(e) => setField('AccessionNo', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-100" readOnly />
+                  </div>
+                  <div>
                     <label className="text-sm text-gray-700 mb-1 block">Call No</label>
-                    <input type="text" value={form.CallNo} onChange={(e) => setField('CallNo', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white" />
+                    <input type="text" value={form.CallNo} onChange={(e) => setField('CallNo', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-100" readOnly />
                   </div>
                   <div>
                     <label className="text-sm text-gray-700 mb-1 block">ISBN</label>
@@ -320,16 +325,14 @@ const BookUpdateForm = () => {
                     <input type="number" min="0" value={form.NumberOfPages} onChange={(e) => setField('NumberOfPages', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white" />
                   </div>
                   <div>
-                    <label className="text-sm text-gray-700 mb-1 block">Number of Copies</label>
-                    <input type="number" min="0" value={form.NoOfCopies} onChange={(e) => setField('NoOfCopies', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white" />
-                  </div>
-                  <div>
                     <label className="text-sm text-gray-700 mb-1 block">Price</label>
                     <input type="number" min="0" max="9999999" value={form.Price} onChange={(e) => setField('Price', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white" />
                   </div>
                   <div>
                     <label className="text-sm text-gray-700 mb-1 block">Registration Date</label>
                     <input type="date" value={form.RegistrationDate} onChange={(e) => setField('RegistrationDate', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white" />
+                  </div>
+                  <div>
                   </div>
                   <div>
                     <label className="text-sm text-gray-700 mb-1 block">Description</label>
@@ -345,7 +348,7 @@ const BookUpdateForm = () => {
                     <button
                     type="submit"
                     disabled={submitLoading}
-                    className={`w-full sm:w-44 px-4 py-2 rounded-lg bg-[#2E6BAA] text-white hover:bg-opacity-90 flex items-center justify-center gap-2 min-h-[44px] ${submitLoading ? 'opacity-70' : ''}`}
+                    className={`w-full sm:w-44 px-4 py-2 rounded-lg bg-[#2E6BAA] hover:bg-[#1B4B8A] text-white hover:bg-opacity-90 flex items-center justify-center gap-2 min-h-[44px] ${submitLoading ? 'opacity-70' : ''}`}
                   >
                     {submitLoading ? (
                       <>

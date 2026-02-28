@@ -1,0 +1,165 @@
+export default function BookListView({
+  books = [],
+  pageNumber = 1,
+  pageSize = books.length,
+  selectedIds = new Set(),
+  onToggleSelected,
+  onDetail,
+  onUpdate,
+  onDelete,
+  openCopies,
+  showAdminActions = false,
+  enableSelection = true,
+}) {
+  const rel = (v) => {
+    const s = String(v || '').trim();
+    if (!s) return '';
+    let d;
+    try {
+      const iso = s.replace(' ', 'T');
+      if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(iso)) {
+        d = new Date(iso.endsWith('Z') ? iso : iso + 'Z');
+      } else if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+        const [y,m,dd] = s.split('-').map(Number);
+        d = new Date(Date.UTC(y, m - 1, dd));
+      } else {
+        d = new Date(s);
+      }
+    } catch { return ''; }
+    if (Number.isNaN(d.getTime())) return '';
+    const nowMs = Date.now();
+    let diffMs = nowMs - d.getTime();
+    if (diffMs < 0) diffMs = 0;
+    const mins = Math.floor(diffMs / 60000);
+    if (mins < 60) return mins <= 0 ? 'just now' : `${mins}m ago`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const today = new Date(); today.setHours(0,0,0,0);
+    const localD = new Date(d.getTime()); localD.setHours(0,0,0,0);
+    const dayDiff = Math.floor((today.getTime() - localD.getTime()) / 86400000);
+    if (dayDiff === 0) return 'today';
+    if (dayDiff === 1) return 'yesterday';
+    return `${dayDiff} days ago`;
+  };
+
+  return (
+    <div className="bg-white/95 shadow-md ring-1 ring-gray-100">
+      <div className="overflow-x-auto">
+        <table className="min-w-[900px] w-full text-sm">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-4 py-3 text-left font-semibold text-gray-700 w-8">#</th>
+              <th className=""></th>
+              <th className="px-4 py-3 text-left font-semibold text-gray-700">Cover</th>
+              <th className="px-4 py-3 text-left font-semibold text-gray-700">Title</th>
+              <th className="px-4 py-3 text-left font-semibold text-gray-700">Author</th>
+              <th className="px-4 py-3 text-left font-semibold text-gray-700">Publisher</th>
+              <th className="px-4 py-3 text-left font-semibold text-gray-700">Year</th>
+              <th className="px-4 py-3 text-left font-semibold text-gray-700">Place</th>
+              <th className="px-4 py-3 text-left font-semibold text-gray-700">Subject Headings</th>
+              <th className="px-4 py-3 text-left font-semibold text-gray-700">Added</th>
+              {showAdminActions && (
+                <th className="px-4 py-3 text-center font-semibold text-gray-700">Copies</th>
+              )}
+              <th className="px-4 py-3 text-right font-semibold text-gray-700">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {books.map((book, idx) => (
+              <tr
+                key={book.bookId || book.publicId || `${book.title}-${idx}`}
+                className={`transition-colors duration-200 border-b border-gray-100 ${selectedIds.has(book.bookId) ? 'bg-green-50' : 'hover:bg-gray-100'}`}
+              >
+                <td className="px-4 py-3 w-8 text-gray-700">{(pageNumber - 1) * (pageSize || books.length) + idx + 1}</td>
+                <td className="pt-[4.5px]">
+                  {enableSelection && (
+                    <input
+                      type="checkbox"
+                      className="cursor-pointer"
+                      checked={selectedIds.has(book.bookId)}
+                      onChange={(e) => onToggleSelected && onToggleSelected(book.bookId, e.target.checked)}
+                    />
+                  )}
+                </td>
+                <td className="px-4 py-3">
+                  {book.cover ? (
+                    <img src={book.cover} alt={book.title} className="w-13 h-20 object-cover rounded-md" />
+                  ) : 
+                  (
+                    <div className="w-13 h-20 bg-[#f3f4f6] text-[#9ca3af] text-[7px] rounded-md flex items-center justify-center">
+                      No Cover
+                    </div>
+                  )}
+                </td>
+                <td className="px-4 py-3">
+                  <div className="font-semibold text-gray-900">
+                    <span className="">{book.title}</span>
+                  </div>
+                  <div className="text-xs text-gray-500">ISBN: {book.isbn}</div>
+                  <div className="text-xs text-gray-500">Barcode:{Array.isArray(book.barcodeNoList) && book.barcodeNoList.length ? (<span className="ml-1 text-gray-700">{book.barcodeNoList.slice(0,3).join(', ')}{book.barcodeNoList.length>3 ? ` +${book.barcodeNoList.length-3} more` : ''}</span>) : (<span className="ml-1 text-gray-400">—</span>)}</div>
+                  <div className="text-xs text-gray-500">Accession:{Array.isArray(book.accessionNoList) && book.accessionNoList.length ? (<span className="ml-1 text-gray-700">{book.accessionNoList.slice(0,3).join(', ')}{book.accessionNoList.length>3 ? ` +${book.accessionNoList.length-3} more` : ''}</span>) : (<span className="ml-1 text-gray-400">—</span>)}</div>
+                </td>
+                <td className="px-4 py-3 text-gray-700">{book.author}</td>
+                <td className="px-4 py-3 text-gray-700">{book.publisher}</td>
+                <td className="px-4 py-3 text-gray-700">{book.publishedYear}</td>
+                <td className="px-4 py-3 text-gray-700">{book.place}</td>
+                <td className="px-4 py-3 text-gray-700">{book.subjectHeadings}</td>
+                <td className="px-4 py-3 text-gray-700">{rel(book.date)}</td>
+                {showAdminActions && (
+                  <td className="px-4 py-3 text-gray-700 text-center">
+                    {book.totalCopies}
+                    <span onClick={() => openCopies(book)} className="ml-1 cursor-pointer text-[#2E6BAA] hover:text-[#1B4B8A]">(View)</span>
+                    {/* <FaCaretSquareDown size={16} className="inline-block ml-2 text-[#2E6BAA] cursor-pointer" /> */}
+                  </td>
+                )}
+                <td className="px-4 py-3">
+                  <div className="text-end space-y-1">
+                    <div>
+                      <button 
+                      onClick={() => onDetail && onDetail(book)}
+                      className="text-sm rounded-md w-full border border-[#2E6BAA] text-[#2E6BAA] hover:bg-[#2E6BAA] hover:text-white transition-colors duration-200">View</button>
+                    </div>
+                    {showAdminActions && 
+                      <>
+                        <div>
+                          <button 
+                          onClick={() => onUpdate && onUpdate(book)}
+                          className='text-sm rounded-md w-full border border-[#2E6BAA] text-[#2E6BAA] hover:bg-[#2E6BAA] hover:text-white transition-colors duration-200'>Edit</button>
+                        </div>
+                        <div>
+                          <button 
+                          onClick={() => onDelete && onDelete(book)}
+                          className="text-sm rounded-md w-full border border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition-colors duration-200">Delete</button>
+                        </div>
+                      </>
+                    }
+                  </div>
+                  {/* <div className="flex justify-end space-x-2">
+                    {showAdminActions && (
+                      <>
+                        <FiEdit size={16}
+                            className="text-[#2E6BAA] cursor-pointer hover:text-[#1B4B8A]"
+                            onClick={() => onUpdate && onUpdate(book)} />
+                        <FiTrash2 size={16}
+                            className="text-[#AA2E2E] cursor-pointer hover:text-[#8A1B1B]"
+                            onClick={() => onDelete && onDelete(book)} />
+                      </>
+                    )}
+                    <LuBookText size={16}
+                        className="text-[#6BAA2E] cursor-pointer hover:text-[#4B8A1B]"
+                        onClick={() => onDetail && onDetail(book)} />
+                    {showAdminActions && (
+                      <LuBookCopy size={16}
+                          className="text-[#2E6BAA] cursor-pointer hover:text-[#1B4B8A]"
+                          onClick={() => openCopies(book)} />
+                    )}
+                  </div> */}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}

@@ -9,7 +9,7 @@ const AdminSidebar = ({ isOpen, setIsOpen }) => {
   const { setUser } = useAuth();
 
   const menuItems = [
-    { path: "/Admin/Registrations", icon: <FiBookOpen size={15} />, label: "Registrations" },
+    { path: "/Admin/Libraries", icon: <FiBookOpen size={15} />, label: "Libraries" },
     { path: "/Settings", icon: <FiSettings size={15} />, label: "Settings" },
   ];
 
