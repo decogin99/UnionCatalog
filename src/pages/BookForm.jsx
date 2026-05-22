@@ -9,7 +9,9 @@ const BookForm = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const bookType = location.pathname.includes('English') ? 'English' : 'Myanmar';
+  const bookType = location.pathname.startsWith('/EnglishBooks')
+    ? 'English'
+    : 'Myanmar';
 
   useEffect(() => {
     document.title = `Add New ${bookType}`;

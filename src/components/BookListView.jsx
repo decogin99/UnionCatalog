@@ -1,3 +1,5 @@
+import { useLanguage } from '../context/AuthProvider.jsx';
+
 export default function BookListView({
   books = [],
   pageNumber = 1,
@@ -11,6 +13,23 @@ export default function BookListView({
   showAdminActions = false,
   enableSelection = true,
 }) {
+  const { language } = useLanguage();
+  const t = language === 'mm'
+    ? {
+        cover: 'မျက်နှာဖုံး', title: 'ခေါင်းစဉ်', author: 'စာရေးသူ', publisher: 'ထုတ်ဝေသူ',
+        year: 'နှစ်', place: 'နေရာ', subjectHeadings: 'ခေါင်းစဉ်များ', added: 'အချိန်',
+        copies: 'အုပ်ရေ', actions: 'လုပ်ဆောင်ချက်များ', view: 'အသေးစိတ်', edit: 'ပြင်ဆင်မည်',
+        delete: 'ဖျက်မည်', noCover: 'မျက်နှာဖုံးမရှိ', isbn: 'ISBN', barcode: 'ဘားကုဒ်',
+        accession: 'အမှတ်စဉ်', viewCopies: '(ကြည့်မည်)'
+      }
+    : {
+        cover: 'Cover', title: 'Title', author: 'Author', publisher: 'Publisher',
+        year: 'Year', place: 'Place', subjectHeadings: 'Subject Headings', added: 'Added',
+        copies: 'Copies', actions: 'Actions', view: 'View', edit: 'Edit',
+        delete: 'Delete', noCover: 'No Cover', isbn: 'ISBN', barcode: 'Barcode',
+        accession: 'Accession', viewCopies: '(View)'
+      };
+
   const rel = (v) => {
     const s = String(v || '').trim();
     if (!s) return '';
@@ -50,18 +69,16 @@ export default function BookListView({
             <tr>
               <th className="px-4 py-3 text-left font-semibold text-gray-700 w-8">#</th>
               <th className=""></th>
-              <th className="px-4 py-3 text-left font-semibold text-gray-700">Cover</th>
-              <th className="px-4 py-3 text-left font-semibold text-gray-700">Title</th>
-              <th className="px-4 py-3 text-left font-semibold text-gray-700">Author</th>
-              <th className="px-4 py-3 text-left font-semibold text-gray-700">Publisher</th>
-              <th className="px-4 py-3 text-left font-semibold text-gray-700">Year</th>
-              <th className="px-4 py-3 text-left font-semibold text-gray-700">Place</th>
-              <th className="px-4 py-3 text-left font-semibold text-gray-700">Subject Headings</th>
-              <th className="px-4 py-3 text-left font-semibold text-gray-700">Added</th>
-              {showAdminActions && (
-                <th className="px-4 py-3 text-center font-semibold text-gray-700">Copies</th>
-              )}
-              <th className="px-4 py-3 text-right font-semibold text-gray-700">Actions</th>
+              <th className="px-4 py-3 text-left font-semibold text-gray-700">{t.cover}</th>
+              <th className="px-4 py-3 text-left font-semibold text-gray-700">{t.title}</th>
+              <th className="px-4 py-3 text-left font-semibold text-gray-700">{t.author}</th>
+              <th className="px-4 py-3 text-left font-semibold text-gray-700">{t.publisher}</th>
+              <th className="px-4 py-3 text-left font-semibold text-gray-700">{t.year}</th>
+              <th className="px-4 py-3 text-left font-semibold text-gray-700">{t.place}</th>
+              <th className="px-4 py-3 text-left font-semibold text-gray-700">{t.subjectHeadings}</th>
+              <th className="px-4 py-3 text-left font-semibold text-gray-700">{t.added}</th>
+              <th className="px-4 py-3 text-center font-semibold text-gray-700">{t.copies}</th>
+              <th className="px-4 py-3 text-right font-semibold text-gray-700">{t.actions}</th>
             </tr>
           </thead>
           <tbody>
@@ -87,7 +104,7 @@ export default function BookListView({
                   ) : 
                   (
                     <div className="w-13 h-20 bg-[#f3f4f6] text-[#9ca3af] text-[7px] rounded-md flex items-center justify-center">
-                      No Cover
+                      {t.noCover}
                     </div>
                   )}
                 </td>
@@ -95,9 +112,9 @@ export default function BookListView({
                   <div className="font-semibold text-gray-900">
                     <span className="">{book.title}</span>
                   </div>
-                  <div className="text-xs text-gray-500">ISBN: {book.isbn}</div>
-                  <div className="text-xs text-gray-500">Barcode:{Array.isArray(book.barcodeNoList) && book.barcodeNoList.length ? (<span className="ml-1 text-gray-700">{book.barcodeNoList.slice(0,3).join(', ')}{book.barcodeNoList.length>3 ? ` +${book.barcodeNoList.length-3} more` : ''}</span>) : (<span className="ml-1 text-gray-400">—</span>)}</div>
-                  <div className="text-xs text-gray-500">Accession:{Array.isArray(book.accessionNoList) && book.accessionNoList.length ? (<span className="ml-1 text-gray-700">{book.accessionNoList.slice(0,3).join(', ')}{book.accessionNoList.length>3 ? ` +${book.accessionNoList.length-3} more` : ''}</span>) : (<span className="ml-1 text-gray-400">—</span>)}</div>
+                  <div className="text-xs text-gray-500">{t.isbn}: {book.isbn}</div>
+                  <div className="text-xs text-gray-500">{t.barcode}:{Array.isArray(book.barcodeNoList) && book.barcodeNoList.length ? (<span className="ml-1 text-gray-700">{book.barcodeNoList.slice(0,3).join(', ')}{book.barcodeNoList.length>3 ? ` +${book.barcodeNoList.length-3} more` : ''}</span>) : (<span className="ml-1 text-gray-400">—</span>)}</div>
+                  <div className="text-xs text-gray-500">{t.accession}:{Array.isArray(book.accessionNoList) && book.accessionNoList.length ? (<span className="ml-1 text-gray-700">{book.accessionNoList.slice(0,3).join(', ')}{book.accessionNoList.length>3 ? ` +${book.accessionNoList.length-3} more` : ''}</span>) : (<span className="ml-1 text-gray-400">—</span>)}</div>
                 </td>
                 <td className="px-4 py-3 text-gray-700">{book.author}</td>
                 <td className="px-4 py-3 text-gray-700">{book.publisher}</td>
@@ -105,31 +122,28 @@ export default function BookListView({
                 <td className="px-4 py-3 text-gray-700">{book.place}</td>
                 <td className="px-4 py-3 text-gray-700">{book.subjectHeadings}</td>
                 <td className="px-4 py-3 text-gray-700">{rel(book.date)}</td>
-                {showAdminActions && (
-                  <td className="px-4 py-3 text-gray-700 text-center">
-                    {book.totalCopies}
-                    <span onClick={() => openCopies(book)} className="ml-1 cursor-pointer text-[#2E6BAA] hover:text-[#1B4B8A]">(View)</span>
-                    {/* <FaCaretSquareDown size={16} className="inline-block ml-2 text-[#2E6BAA] cursor-pointer" /> */}
-                  </td>
-                )}
+                <td className="px-4 py-3 text-gray-700 text-center">
+                  {book.totalCopies}
+                  {showAdminActions && <span onClick={() => openCopies(book)} className="ml-1 cursor-pointer text-[#2E6BAA] hover:text-[#1B4B8A]">{t.viewCopies}</span>}
+                </td>
                 <td className="px-4 py-3">
                   <div className="text-end space-y-1">
                     <div>
                       <button 
                       onClick={() => onDetail && onDetail(book)}
-                      className="text-sm rounded-md w-full border border-[#2E6BAA] text-[#2E6BAA] hover:bg-[#2E6BAA] hover:text-white transition-colors duration-200">View</button>
+                      className="text-sm rounded-md w-full border border-[#2E6BAA] text-[#2E6BAA] hover:bg-[#2E6BAA] hover:text-white transition-colors duration-200">{t.view}</button>
                     </div>
                     {showAdminActions && 
                       <>
                         <div>
                           <button 
                           onClick={() => onUpdate && onUpdate(book)}
-                          className='text-sm rounded-md w-full border border-[#2E6BAA] text-[#2E6BAA] hover:bg-[#2E6BAA] hover:text-white transition-colors duration-200'>Edit</button>
+                          className='text-sm rounded-md w-full border border-[#2E6BAA] text-[#2E6BAA] hover:bg-[#2E6BAA] hover:text-white transition-colors duration-200'>{t.edit}</button>
                         </div>
                         <div>
                           <button 
                           onClick={() => onDelete && onDelete(book)}
-                          className="text-sm rounded-md w-full border border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition-colors duration-200">Delete</button>
+                          className="text-sm rounded-md w-full border border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition-colors duration-200">{t.delete}</button>
                         </div>
                       </>
                     }

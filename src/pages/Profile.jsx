@@ -6,11 +6,12 @@ import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 import profilePlaceholder from '../assets/profile-placeholder.png';
 import { libraryService } from '../services/libraryService';
-import { useAuth } from '../context/AuthProvider.jsx';
+import { useAuth, useLanguage } from '../context/AuthProvider.jsx';
 import LibraryPublicView from '../components/LibraryPublicView';
 
 const Profile = () => {
   const { setUser } = useAuth();
+  const { language } = useLanguage();
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -146,9 +147,25 @@ const Profile = () => {
     if (coverInputRef.current) coverInputRef.current.value = '';
   };
 
+  const t = language === 'mm'
+    ? {
+        pageTitle: 'သင့်စာကြည့်တိုက်', profile: 'စာကြည့်တိုက် ပရိုဖိုင်', backToEdit: 'ပြင်ဆင်ရန်သို့ ပြန်မည်', viewAs: 'အစမ်းကြည့်မည်',
+        changeCover: 'ကာဗာပြောင်းမည်', removeCover: 'ကာဗာဖယ်မည်', removePhoto: 'ဓာတ်ပုံဖယ်မည်',
+        visibility: 'မြင်နိုင်မှု', libraryName: 'စာကြည့်တိုက် အမည်', libraryType: 'စာကြည့်တိုက် အမျိုးအစား', ownerName: 'ပိုင်ရှင် အမည်', contactPerson: 'ဆက်သွယ်ရန် ပုဂ္ဂိုလ်',
+        primaryEmail: 'အဓိက အီးမေးလ်', phoneNumber: 'ဖုန်းနံပါတ်', township: 'မြို့နယ်', stateDivision: 'တိုင်း/ပြည်နယ်', address: 'လိပ်စာ', booksAdded: 'ထည့်သွင်းထားသော စာအုပ်များ',
+        saving: 'သိမ်းနေသည်...', saveChanges: 'သိမ်းမည်',
+      }
+    : {
+        pageTitle: 'Your Library', profile: 'Library Profile', backToEdit: 'Back to Edit', viewAs: 'View As',
+        changeCover: 'Change Cover', removeCover: 'Remove Cover', removePhoto: 'Remove Photo',
+        visibility: 'Visibility', libraryName: 'Library Name', libraryType: 'Library Type', ownerName: 'Owner Name', contactPerson: 'Contact Person',
+        primaryEmail: 'Primary Email', phoneNumber: 'Phone Number', township: 'Township', stateDivision: 'State/Division', address: 'Address', booksAdded: 'Books added',
+        saving: 'Saving...', saveChanges: 'Save Changes',
+      };
+
   useEffect(() => {
-    document.title = "Your Library"
-  }, []);
+    document.title = t.pageTitle;
+  }, [t.pageTitle]);
 
   const setField = (name, value) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -199,7 +216,7 @@ const Profile = () => {
       <div className="flex-1 lg:ml-64 mt-16 transition-all duration-300 overflow-y-auto">
         <div className="p-4 lg:px-8">
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold text-gray-800">Library Profile</h1>
+            <h1 className="text-2xl font-bold text-gray-800">{t.profile}</h1>
             <button
               type="button"
               onClick={() => setPreviewMode(!previewMode)}
@@ -208,12 +225,12 @@ const Profile = () => {
               {previewMode ? (
                 <>
                   <FiEdit2 size={14} />
-                  <span>Back to Edit</span>
+                  <span>{t.backToEdit}</span>
                 </>
               ) : (
                 <>
                   <FiEye size={14} />
-                  <span>View As</span>
+                  <span>{t.viewAs}</span>
                 </>
               )}
             </button>
@@ -246,7 +263,7 @@ const Profile = () => {
                       className="bg-white/20 text-white px-3 py-1 rounded-md backdrop-blur hover:bg-white/30 text-sm inline-flex items-center gap-2"
                     >
                       <FiCamera size={14} />
-                      Change Cover
+                      {t.changeCover}
                     </button>
                     <button
                       type="button"
@@ -254,7 +271,7 @@ const Profile = () => {
                       disabled={!libraryCoverFile && !coverImage}
                       className="bg-red-600/80 text-white px-3 py-1 rounded-md backdrop-blur hover:bg-red-700 text-sm disabled:opacity-60"
                     >
-                      Remove Cover
+                      {t.removeCover}
                     </button>
                   </div>
                   <input
@@ -302,7 +319,7 @@ const Profile = () => {
                           disabled={!libraryPhotoFile && (!profileImage || profileImage === profilePlaceholder)}
                           className="inline-flex items-center px-3 py-1 rounded-md bg-red-600 text-white hover:bg-red-700 text-xs disabled:opacity-60"
                         >
-                          Remove Photo
+                          {t.removePhoto}
                         </button>
                       </div>
                     </div>
@@ -324,7 +341,7 @@ const Profile = () => {
                         ${formData?.LibraryVisibility === 'Private' ? 'bg-red-50 text-red-700 ring-red-200' : 
                           'bg-green-50 text-green-700 ring-green-200'}`}
                         >
-                          Visibility : {formData?.LibraryVisibility}
+                          {t.visibility} : {formData?.LibraryVisibility}
                         </span>
                       </div>
                     </div>
@@ -332,7 +349,7 @@ const Profile = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Library Name</label>
+                      <label className="block text-sm font-medium text-gray-700">{t.libraryName}</label>
                       <input
                         type="text"
                         name="LibraryName"
@@ -343,7 +360,7 @@ const Profile = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Library Type</label>
+                      <label className="block text-sm font-medium text-gray-700">{t.libraryType}</label>
                       <input
                         type="text"
                         name="LibraryType"
@@ -354,7 +371,7 @@ const Profile = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Owner Name</label>
+                      <label className="block text-sm font-medium text-gray-700">{t.ownerName}</label>
                       <input
                         type="text"
                         name="OwnerName"
@@ -365,7 +382,7 @@ const Profile = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Contact Person</label>
+                      <label className="block text-sm font-medium text-gray-700">{t.contactPerson}</label>
                       <input
                         type="text"
                         name="ContactPerson"
@@ -376,7 +393,7 @@ const Profile = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Primary Email</label>
+                      <label className="block text-sm font-medium text-gray-700">{t.primaryEmail}</label>
                       <input
                         type="email"
                         name="Email"
@@ -387,7 +404,7 @@ const Profile = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Phone Number</label>
+                      <label className="block text-sm font-medium text-gray-700">{t.phoneNumber}</label>
                       <input
                         type="text"
                         name="PhoneNumber"
@@ -398,7 +415,7 @@ const Profile = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Township</label>
+                      <label className="block text-sm font-medium text-gray-700">{t.township}</label>
                       <input
                         type="text"
                         name="Township"
@@ -409,7 +426,7 @@ const Profile = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">State/Division</label>
+                      <label className="block text-sm font-medium text-gray-700">{t.stateDivision}</label>
                       <input
                         type="text"
                         name="StateDivision"
@@ -420,7 +437,7 @@ const Profile = () => {
                       />
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700">Address</label>
+                      <label className="block text-sm font-medium text-gray-700">{t.address}</label>
                       <textarea
                         name="Address"
                         value={formData.Address}
@@ -432,7 +449,7 @@ const Profile = () => {
                     </div>
                     <div className="md:col-span-2">
                       <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex items-center">
-                        <div className="text-sm text-gray-700">Books added: <strong className="text-gray-900">{formData.BookCount}</strong></div>
+                        <div className="text-sm text-gray-700">{t.booksAdded}: <strong className="text-gray-900">{formData.BookCount}</strong></div>
                       </div>
                     </div>
                   </div>
@@ -454,10 +471,10 @@ const Profile = () => {
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0a12 12 0 100 24v-4a8 8 0 01-8-8z"></path>
                           </svg>
-                          <span>Saving...</span>
+                          <span>{t.saving}</span>
                         </>
                       ) : (
-                          <span>Save Changes</span>
+                          <span>{t.saveChanges}</span>
                       )}
                     </button>
                   </div>

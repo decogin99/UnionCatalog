@@ -3,13 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 import { libraryService } from '../services/libraryService';
-import { useAuth } from "../context/AuthProvider.jsx";
+import { useAuth, useLanguage } from "../context/AuthProvider.jsx";
 import FreeUsageDialog from '../components/common/FreeUsageDialog';
 
 
 const DDCView = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { user } = useAuth();
+  const { language } = useLanguage();
   const navigate = useNavigate();
   const [freePromptOpen, setFreePromptOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -18,9 +19,37 @@ const DDCView = () => {
   const [currentDdc, setCurrentDdc] = useState(null);
   const [retrying, setRetrying] = useState(false);
 
+  const t = language === 'mm'
+    ? {
+        pageTitle: 'DDC ကြည့်ရှုမှု',
+        heading: 'Dewey Decimal Classification (DDC) ကြည့်ရှုမှု',
+        retry: 'ထပ်စမ်းမည်',
+        viewing: 'ကြည့်ရှုနေသည်',
+        backToTop: '000–900 သို့ ပြန်မည်',
+        ddcClass: 'DDC နံပါတ်',
+        desc: 'ဖော်ပြချက်/အဓိပ္ပာယ်',
+        inEnglish: 'အင်္ဂလိပ် စာအုပ်အရေအတွက်',
+        inMyanmar: 'မြန်မာ စာအုပ်အရေအတွက်',
+        drillDown: 'အတွင်းသို့ ကြည့်မည်',
+        limitedAccess: 'အသုံးပြုခွင့် ကန့်သတ်ထားသည်',
+      }
+    : {
+        pageTitle: 'DDC View',
+        heading: 'Dewey Decimal Classification (DDC) View',
+        retry: 'Retry',
+        viewing: 'Viewing',
+        backToTop: 'Back to 000–900',
+        ddcClass: 'DDC Class',
+        desc: 'Description/Meaning',
+        inEnglish: 'In English',
+        inMyanmar: 'In Myanmar',
+        drillDown: 'Drill down',
+        limitedAccess: 'Limited Access',
+      };
+
   useEffect(() => {
-    document.title = 'DDC View';
-  }, []);
+    document.title = t.pageTitle;
+  }, [t.pageTitle]);
 
   useEffect(() => {
     let mounted = true;
@@ -76,7 +105,7 @@ const DDCView = () => {
       <div className="flex-1 lg:ml-64 mt-16 transition-all duration-300 overflow-y-auto">
         <div className="p-4 lg:px-8">
           <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-bold text-gray-900">Dewey Decimal Classification (DDC) View</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{t.heading}</h1>
           </div>
 
           {error && (
@@ -89,7 +118,7 @@ const DDCView = () => {
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0a12 12 0 100 24v-4a8 8 0 01-8-8z"></path>
                   </svg>
                 )}
-                <span>Retry</span>
+                <span>{t.retry}</span>
               </button>
             </div>
           )}
@@ -97,18 +126,18 @@ const DDCView = () => {
           <div className="rounded-xl bg-white ring-1 ring-white/60 shadow-sm">
             {currentDdc && (
               <div className="flex items-center justify-between p-3 border-b border-gray-200">
-                <div className="text-sm text-gray-700">Viewing: {currentDdc}</div>
-                <button onClick={() => setCurrentDdc(null)} className="px-3 py-1 text-sm rounded-md bg-gray-100 text-gray-800 hover:bg-gray-200">Back to 000–900</button>
+                <div className="text-sm text-gray-700">{t.viewing}: {currentDdc}</div>
+                <button onClick={() => setCurrentDdc(null)} className="px-3 py-1 text-sm rounded-md bg-gray-100 text-gray-800 hover:bg-gray-200">{t.backToTop}</button>
               </div>
             )}
             <div className={`overflow-x-auto ${!currentDdc && 'rounded-xl'}`}>
               <table className="min-w-[800px] w-full text-sm">
                 <thead className="bg-gradient-to-r from-[#dbeeff] to-[#bfe0f7]">
                   <tr className="text-[#0C2D57]">
-                    <th className="p-5 text-left font-semibold">DDC Class</th>
-                    <th className="p-5 text-left font-semibold">Description/Meaning</th>
-                    <th className="p-5 text-right font-semibold">In English</th>
-                    <th className="p-5 text-right font-semibold">In Myanmar</th>
+                    <th className="p-5 text-left font-semibold">{t.ddcClass}</th>
+                    <th className="p-5 text-left font-semibold">{t.desc}</th>
+                    <th className="p-5 text-right font-semibold">{t.inEnglish}</th>
+                    <th className="p-5 text-right font-semibold">{t.inMyanmar}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -131,12 +160,12 @@ const DDCView = () => {
                         <tr key={cls}
                             className="border-t border-white/40 hover:bg-gray-100 cursor-pointer"
                             onClick={() => { if (topClickable) { if (user?.libraryAccess === 'Free') { setFreePromptOpen(true); return; } setCurrentDdc(String(cls).trim()); } }}
-                            title={topClickable ? 'Drill down' : undefined}
+                            title={topClickable ? t.drillDown : undefined}
                         >
                           <td
                             className={`p-5 font-semibold text-gray-800 ${topClickable ? 'cursor-pointer text-[#0C2D57]' : ''}`}
                             onClick={() => { if (topClickable) { if (user?.libraryAccess === 'Free') { setFreePromptOpen(true); return; } setCurrentDdc(String(cls).trim()); } }}
-                            title={topClickable ? 'Drill down' : undefined}
+                            title={topClickable ? t.drillDown : undefined}
                           >
                             {cls}
                           </td>
@@ -159,7 +188,7 @@ const DDCView = () => {
         onVerify={() => { setFreePromptOpen(false); navigate('/LibraryVerify'); }}
         libraryName={user?.libraryName || ''}
         userType={user?.libraryAccess || 'Free'}
-        title="Limited Access"
+        title={t.limitedAccess}
       />
     </div>
   );

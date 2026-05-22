@@ -4,7 +4,7 @@ import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 import BarcodePrint from '../components/barcode/BarcodePrint';
 import Barcode from 'react-barcode';
-import { useAuth } from "../context/AuthProvider.jsx";
+import { useAuth, useLanguage } from "../context/AuthProvider.jsx";
 import { libraryService } from '../services/libraryService';
 import FreeUsageDialog from '../components/common/FreeUsageDialog';
 
@@ -25,6 +25,7 @@ import FreeUsageDialog from '../components/common/FreeUsageDialog';
 const BarCode = () => {
 
   const { user } = useAuth();
+  const { language } = useLanguage();
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [freePromptOpen, setFreePromptOpen] = useState(false);
@@ -36,9 +37,45 @@ const BarCode = () => {
   const [printCodes, setPrintCodes] = useState([]);
   const [printOpen, setPrintOpen] = useState(false);
 
+  const t = language === 'mm'
+    ? {
+        pageTitle: 'ဘားကုဒ် ထုတ်လုပ်မှု',
+        heading: 'ဘားကုဒ် ထုတ်လုပ်မှု',
+        english: 'အင်္ဂလိပ်',
+        myanmar: 'မြန်မာ',
+        loading: 'လုပ်ဆောင်နေသည်...',
+        refresh: 'ပြန်ကြည့်မည်',
+        generate: 'ထုတ်မည်',
+        selectAtLeastOne: 'အနည်းဆုံး ဘားကုဒ် တစ်ခုရွေးပါ',
+        noBarcode: 'ပြသရန် ဘားကုဒ် မရှိပါ။',
+        availableBarcodes: 'အသုံးပြုနိုင်သော ဘားကုဒ်များ',
+        selectAll: 'အားလုံးရွေး',
+        clear: 'ရှင်းမည်',
+        preview: 'ဘားကုဒ် အစမ်းကြည့်',
+        close: 'ပိတ်မည်',
+        limitedAccess: 'အသုံးပြုခွင့် ကန့်သတ်ထားသည်',
+      }
+    : {
+        pageTitle: 'Barcode Generator',
+        heading: 'Barcode Generator',
+        english: 'English',
+        myanmar: 'Myanmar',
+        loading: 'Loading...',
+        refresh: 'Refresh',
+        generate: 'Generate',
+        selectAtLeastOne: 'Please select at least one barcode',
+        noBarcode: 'No barcode to display.',
+        availableBarcodes: 'Available Barcodes',
+        selectAll: 'Select All',
+        clear: 'Clear',
+        preview: 'Barcodes Preview',
+        close: 'Close',
+        limitedAccess: 'Limited Access',
+      };
+
   useEffect(() => {
-    document.title = 'Barcode Generator';
-  }, []);
+    document.title = t.pageTitle;
+  }, [t.pageTitle]);
 
   useEffect(() => {
     fetchBarcodeList();
@@ -83,7 +120,7 @@ const BarCode = () => {
       <div className="flex-1 lg:ml-64 mt-16 transition-all duration-300 overflow-y-auto">
         <div className="p-4 lg:px-8">
           <div className="no-print flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-bold text-gray-900">Barcode Generator</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{t.heading}</h1>
           </div>
 
           <form className="no-print">
@@ -93,23 +130,23 @@ const BarCode = () => {
               onChange={(e) => setBookType(e.target.value)}
               className="px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]"
               >
-                <option value="English">English</option>
-                <option value="Myanmar">Myanmar</option>
+                <option value="English">{t.english}</option>
+                <option value="Myanmar">{t.myanmar}</option>
               </select>
               <button
                 type="button"
                 onClick={()=>{ if (user?.libraryAccess === 'Free') { setFreePromptOpen(true); return; } fetchBarcodeList(); }}
                 className="px-4 py-3 mr-auto bg-green-600 hover:bg-green-700 text-white rounded-xl disabled:opacity-60"
               >
-                {loading ? 'Loading...' : 'Refresh'}
+                {loading ? t.loading : t.refresh}
               </button>
               <button
                 type="button"
                 disabled={loading || selectedCodes.length === 0}
-                onClick={()=>{ if (user?.libraryAccess === 'Free') { setFreePromptOpen(true); return; } if (selectedCodes.length === 0) { setError('Please select at least one barcode'); return; } setPrintCodes(selectedCodes.slice()); setPrintOpen(true); }}
+                onClick={()=>{ if (user?.libraryAccess === 'Free') { setFreePromptOpen(true); return; } if (selectedCodes.length === 0) { setError(t.selectAtLeastOne); return; } setPrintCodes(selectedCodes.slice()); setPrintOpen(true); }}
                 className="px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl disabled:opacity-60"
               >
-                {loading ? 'Loading...' : 'Generate'}
+                {loading ? t.loading : t.generate}
               </button>
             </div>
           </form>
@@ -123,15 +160,15 @@ const BarCode = () => {
           <div className="bg-white rounded-2xl shadow ring-1 ring-gray-100 p-6">
             {availableCodes.length === 0 ? (
               <div className="no-print flex justify-center items-center h-64 border-2 border-dashed border-gray-300 rounded-xl bg-white">
-                <p className="text-gray-500">No barcode to display.</p>
+                <p className="text-gray-500">{t.noBarcode}</p>
               </div>
             ) : (
               <>
                 <div className="mb-3 flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-gray-900">Available Barcodes</h2>
+                  <h2 className="text-lg font-semibold text-gray-900">{t.availableBarcodes}</h2>
                   <div className="flex gap-2">
-                    <button type="button" onClick={() => setSelectedCodes(availableCodes.slice())} className="px-3 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200">Select All</button>
-                    <button type="button" onClick={() => setSelectedCodes([])} className="px-3 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200">Clear</button>
+                    <button type="button" onClick={() => setSelectedCodes(availableCodes.slice())} className="px-3 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200">{t.selectAll}</button>
+                    <button type="button" onClick={() => setSelectedCodes([])} className="px-3 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200">{t.clear}</button>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 max-h-[500px] overflow-auto">

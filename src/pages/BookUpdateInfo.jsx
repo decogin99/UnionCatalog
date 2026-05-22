@@ -10,7 +10,9 @@ const BookUpdateInfo = () => {
   const location = useLocation();
   const { bookId } = useParams();
 
-  const bookType = location.pathname.includes('English') ? 'English' : 'Myanmar';
+  const bookType = location.pathname.startsWith('/EnglishBooks')
+    ? 'English'
+    : 'Myanmar';
   const imageBase = import.meta.env.VITE_IMAGE_BASE_URL || '';
 
   useEffect(() => {

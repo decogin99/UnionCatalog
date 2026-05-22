@@ -4,12 +4,13 @@ import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 import { libraryService } from '../services/libraryService';
 import LabelPrint from '../components/label/LabelPrint';
-import { useAuth } from "../context/AuthProvider.jsx";
+import { useAuth, useLanguage } from "../context/AuthProvider.jsx";
 import FreeUsageDialog from '../components/common/FreeUsageDialog';
 
 const LabelView = () => {
 
   const { user } = useAuth();
+  const { language } = useLanguage();
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [freePromptOpen, setFreePromptOpen] = useState(false);
@@ -21,9 +22,47 @@ const LabelView = () => {
   const [printLabels, setPrintLabels] = useState([]);
   const [printOpen, setPrintOpen] = useState(false);
 
+  const t = language === 'mm'
+    ? {
+        pageTitle: 'လေဘယ် ထုတ်လုပ်မှု',
+        heading: 'လေဘယ် ထုတ်လုပ်မှု',
+        english: 'အင်္ဂလိပ်',
+        myanmar: 'မြန်မာ',
+        loading: 'လုပ်ဆောင်နေသည်...',
+        refresh: 'ပြန်ကြည့်မည်',
+        generate: 'ထုတ်မည်',
+        selectAtLeastOne: 'အနည်းဆုံး လေဘယ် တစ်ခုရွေးပါ',
+        noLabels: 'ပြသရန် လေဘယ် မရှိပါ။',
+        availableLabels: 'အသုံးပြုနိုင်သော လေဘယ်များ',
+        selectAll: 'အားလုံးရွေး',
+        clear: 'ရှင်းမည်',
+        barcode: 'ဘားကုဒ်',
+        preview: 'လေဘယ် အစမ်းကြည့်',
+        close: 'ပိတ်မည်',
+        limitedAccess: 'အသုံးပြုခွင့် ကန့်သတ်ထားသည်',
+      }
+    : {
+        pageTitle: 'Label Generator',
+        heading: 'Label Generator',
+        english: 'English',
+        myanmar: 'Myanmar',
+        loading: 'Loading...',
+        refresh: 'Refresh',
+        generate: 'Generate',
+        selectAtLeastOne: 'Please select at least one label',
+        noLabels: 'No labels to display.',
+        availableLabels: 'Available Labels',
+        selectAll: 'Select All',
+        clear: 'Clear',
+        barcode: 'Barcode',
+        preview: 'Labels Preview',
+        close: 'Close',
+        limitedAccess: 'Limited Access',
+      };
+
   useEffect(() => {
-    document.title = 'Label Generator';
-  }, []);
+    document.title = t.pageTitle;
+  }, [t.pageTitle]);
 
   useEffect(() => {
       fetchLabelList();
@@ -103,7 +142,7 @@ const LabelView = () => {
       <div className="flex-1 lg:ml-64 mt-16 transition-all duration-300 overflow-y-auto">
         <div className="p-4 lg:px-8">
           <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-bold text-gray-900">Label Generator</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{t.heading}</h1>
           </div>
 
           <form className="no-print">
@@ -113,15 +152,15 @@ const LabelView = () => {
               onChange={(e) => setBookType(e.target.value)}
               className="px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]"
               >
-                <option value="English">English</option>
-                <option value="Myanmar">Myanmar</option>
+                <option value="English">{t.english}</option>
+                <option value="Myanmar">{t.myanmar}</option>
               </select>
               <button
                 type="button"
                 onClick={()=>{ if (user?.libraryAccess === 'Free') { setFreePromptOpen(true); return; } fetchLabelList(); }}
                 className="px-4 py-3 mr-auto bg-green-600 hover:bg-green-700 text-white rounded-xl disabled:opacity-60"
               >
-                {loading ? 'Loading...' : 'Refresh'}
+                {loading ? t.loading : t.refresh}
               </button>
               {/* <input
                 type="text"
@@ -140,10 +179,10 @@ const LabelView = () => {
               <button
                 type="button"
                 disabled={loading || selectedLabels.length === 0}
-                onClick={() => { if (user?.libraryAccess === 'Free') { setFreePromptOpen(true); return; } if (!selectedLabels.length) { setError('Please select at least one label'); return; } setPrintLabels(selectedLabels.map(i => availableLabels[i])); setPrintOpen(true); }}
+                onClick={() => { if (user?.libraryAccess === 'Free') { setFreePromptOpen(true); return; } if (!selectedLabels.length) { setError(t.selectAtLeastOne); return; } setPrintLabels(selectedLabels.map(i => availableLabels[i])); setPrintOpen(true); }}
                 className="px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl disabled:opacity-60"
               >
-                {loading ? 'Loading...' : 'Generate'}
+                {loading ? t.loading : t.generate}
               </button>
             </div>
           </form>
@@ -157,15 +196,15 @@ const LabelView = () => {
           <div className="bg-white rounded-2xl shadow ring-1 ring-gray-100 p-6">
             {availableLabels.length === 0 ? (
               <div className="no-print flex justify-center items-center h-64 border-2 border-dashed border-gray-300 rounded-xl bg-white">
-                <p className="text-gray-500">No labels to display.</p>
+                <p className="text-gray-500">{t.noLabels}</p>
               </div>
             ) : (
               <>
                 <div className="mb-3 flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-gray-900">Available Labels</h2>
+                  <h2 className="text-lg font-semibold text-gray-900">{t.availableLabels}</h2>
                   <div className="flex gap-2">
-                    <button type="button" onClick={() => setSelectedLabels(availableLabels.map((_, i) => i))} className="px-3 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200">Select All</button>
-                    <button type="button" onClick={() => setSelectedLabels([])} className="px-3 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200">Clear</button>
+                    <button type="button" onClick={() => setSelectedLabels(availableLabels.map((_, i) => i))} className="px-3 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200">{t.selectAll}</button>
+                    <button type="button" onClick={() => setSelectedLabels([])} className="px-3 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200">{t.clear}</button>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 max-h-[500px] overflow-auto">
@@ -185,7 +224,7 @@ const LabelView = () => {
                         <div className="text-center leading-tight">
                           {item.Initial && (<div className="text-base font-semibold text-gray-800">{item.Initial}</div>)}
                           <div className="text-sm text-gray-900 mt-[1mm]">{item.AccessionNo}</div>
-                          {item.BarcodeNo && (<div className="text-[11px] text-gray-500 mt-[1mm]">Barcode: {item.BarcodeNo}</div>)}
+                          {item.BarcodeNo && (<div className="text-[11px] text-gray-500 mt-[1mm]">{t.barcode}: {item.BarcodeNo}</div>)}
                         </div>
                       </div>
                     );
@@ -204,8 +243,8 @@ const LabelView = () => {
             <div className="overlay absolute inset-0 bg-black/40" onClick={() => setPrintOpen(false)}></div>
             <div className="modal-content relative bg-white rounded-2xl shadow-xl w-full max-w-5xl p-4 ring-1 ring-gray-100">
               <div className="flex items-center justify-between mb-2">
-                <h2 className="text-lg font-semibold text-gray-800">Labels Preview</h2>
-                <button type="button" onClick={() => setPrintOpen(false)} className="px-3 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200">Close</button>
+                <h2 className="text-lg font-semibold text-gray-800">{t.preview}</h2>
+                <button type="button" onClick={() => setPrintOpen(false)} className="px-3 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200">{t.close}</button>
               </div>
               <div className="print-grid">
                 <LabelPrint labels={printLabels} />
@@ -221,7 +260,7 @@ const LabelView = () => {
         onVerify={() => { setFreePromptOpen(false); navigate('/LibraryVerify'); }}
         libraryName={user?.libraryName || ''}
         userType={user?.libraryAccess || 'Free'}
-        title="Limited Access"
+        title={t.limitedAccess}
       />
     </div>
   );

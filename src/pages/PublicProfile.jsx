@@ -103,7 +103,7 @@ const PublicProfile = () => {
             <div className="mb-4 rounded-xl px-4 py-3 text-sm bg-red-50 text-red-700 ring-1 ring-red-200">{error}</div>
           ) : data ? (
             <>
-                <div className="mb-2">
+                <div className="mb-2 text-right">
                     <button onClick={() => navigate(user?.role === 'SuperAdmin' ? '/Admin/Libraries' : '/Dashboard')} className="px-4 py-2 bg-gray-200 text-gray-700 hover:bg-gray-300 rounded-md">Back</button>
                 </div>
                 <LibraryPublicView

@@ -4,7 +4,7 @@ import { MdVerified, MdWorkspacePremium } from "react-icons/md";
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
-import { useAuth } from '../context/AuthProvider.jsx';
+import { useAuth, useLanguage } from '../context/AuthProvider.jsx';
 import { libraryService } from '../services/libraryService';
 
 const StatCard = ({ icon, title, value, color, onClick }) => (
@@ -24,7 +24,24 @@ const StatCard = ({ icon, title, value, color, onClick }) => (
 const Dashboard = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const { user } = useAuth();
+    const { language } = useLanguage();
     const navigate = useNavigate();
+
+    const t = language === 'mm'
+      ? {
+          dashboard: 'ပင်မစာမျက်နှာ', welcome: 'Union Catalog Portal မှ ကြိုဆိုပါသည်',
+          englishBooks: 'အင်္ဂလိပ် စာအုပ်များ', myanmarBooks: 'မြန်မာ စာအုပ်များ',
+          retry: 'ထပ်စမ်းမည်', verifiedLibraries: 'အတည်ပြုထားသော စာကြည့်တိုက်များ',
+          prev: 'ယခင်', next: 'နောက်', noVerified: 'အတည်ပြုထားသော စာကြည့်တိုက် မရှိပါ',
+          books: 'စာအုပ်', view: 'ကြည့်မည်'
+        }
+      : {
+          dashboard: 'Dashboard', welcome: 'Welcome to Union Catalog Portal',
+          englishBooks: 'English Books', myanmarBooks: 'Myanmar Books',
+          retry: 'Retry', verifiedLibraries: 'Verified Libraries',
+          prev: 'Prev', next: 'Next', noVerified: 'No verified libraries',
+          books: 'Books', view: 'View'
+        };
 
     const [isStatusLoading, setIsStatusLoading] = useState(true);
     const [statusError, setStatusError] = useState('');
@@ -40,14 +57,14 @@ const Dashboard = () => {
     const [verifiedTotal, setVerifiedTotal] = useState(0);
 
     useEffect(() => {
-        document.title = "Dashboard"
+        document.title = t.dashboard
         if (isSidebarOpen && window.innerWidth < 1024) {
             document.body.classList.add('no-scroll');
         } else {
             document.body.classList.remove('no-scroll');
         }
         return () => { document.body.classList.remove('no-scroll'); };
-    }, [isSidebarOpen]);
+    }, [isSidebarOpen, t.dashboard]);
 
     const fetchDashboardStatus = async () => {
       setStatusError('')
@@ -140,8 +157,8 @@ const Dashboard = () => {
     }
 
     const stats = [
-        { title: 'English Books', value: english.toLocaleString(), icon: <FiBook size={24} className="text-[#0C2D57]" />, color: '#0C2D57', onClick: () => navigate('/EnglishBooks') },
-        { title: 'Myanmar Books', value: myanmar.toLocaleString(), icon: <FiBook size={24} className="text-[#2E8A99]" />, color: '#2E8A99', onClick: () => navigate('/MyanmarBooks') },
+        { title: t.englishBooks, value: english.toLocaleString(), icon: <FiBook size={24} className="text-[#0C2D57]" />, color: '#0C2D57', onClick: () => navigate('/EnglishBooks') },
+        { title: t.myanmarBooks, value: myanmar.toLocaleString(), icon: <FiBook size={24} className="text-[#2E8A99]" />, color: '#2E8A99', onClick: () => navigate('/MyanmarBooks') },
     ];
 
     return (
@@ -153,8 +170,8 @@ const Dashboard = () => {
             {/* Main Content */}
             <div className="p-4 lg:px-8">
               <div className="mb-5">
-                  <h1 className="text-3xl sm:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#1B4B8A] to-[#2E6BAA]">Dashboard</h1>
-                  <p className="text-sm sm:text-base text-[#1B4B8A]">Welcome to Union Catalog Portal</p>
+                  <h1 className="text-3xl sm:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#1B4B8A] to-[#2E6BAA]">{t.dashboard}</h1>
+                  <p className="text-sm sm:text-base text-[#1B4B8A]">{t.welcome}</p>
               </div>
 
               {isStatusLoading ? (
@@ -166,7 +183,7 @@ const Dashboard = () => {
                   <div className="rounded-xl px-4 py-3 text-sm bg-red-50 text-red-700 ring-1 ring-red-200 flex items-center justify-between">
                     <span className="truncate">{statusError}</span>
                     <button onClick={handleStatusRetry} className="ml-3 px-3 py-1 rounded-md bg-red-600 text-white hover:bg-red-700 disabled:opacity-70 flex items-center gap-2">
-                      <span>Retry</span>
+                      <span>{t.retry}</span>
                     </button>
                   </div>
                 ) : (
@@ -184,13 +201,13 @@ const Dashboard = () => {
             {user?.libraryAccess === 'Verified' && (
             <div className="p-4 lg:px-8">
                 <div className="mb-3 flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-gray-900">Verified Libraries 
+                  <h2 className="text-lg font-semibold text-gray-900">{t.verifiedLibraries}
                     <span className="text-gray-600 text-md mx-1">({verifiedTotal})</span> 
                     {/* <span onClick={() => alert('under maintenance')} className="text-blue-600 hover:text-blue-800 text-sm cursor-pointer">View All</span> */}
                   </h2>
                   <div className="flex items-center gap-2">
-                    <button onClick={() => { if (verifiedPage > 1) setVerifiedPage(verifiedPage - 1); }} disabled={verifiedPage <= 1 || verifiedLoading} className="px-3 py-1 text-sm rounded bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:opacity-50">Prev</button>
-                    <button onClick={() => { if (verifiedTotalPages === 0 || verifiedPage >= verifiedTotalPages) return; setVerifiedPage(verifiedPage + 1); }} disabled={verifiedPage >= verifiedTotalPages || verifiedLoading} className="px-3 py-1 text-sm rounded bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:opacity-50">Next</button>
+                    <button onClick={() => { if (verifiedPage > 1) setVerifiedPage(verifiedPage - 1); }} disabled={verifiedPage <= 1 || verifiedLoading} className="px-3 py-1 text-sm rounded bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:opacity-50">{t.prev}</button>
+                    <button onClick={() => { if (verifiedTotalPages === 0 || verifiedPage >= verifiedTotalPages) return; setVerifiedPage(verifiedPage + 1); }} disabled={verifiedPage >= verifiedTotalPages || verifiedLoading} className="px-3 py-1 text-sm rounded bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:opacity-50">{t.next}</button>
                   </div>
                 </div>
                 {verifiedLoading ? (
@@ -201,11 +218,11 @@ const Dashboard = () => {
                   <div className="rounded-xl px-4 py-3 text-sm bg-red-50 text-red-700 ring-1 ring-red-200 flex items-center justify-between">
                     <span className="truncate">{verifiedError}</span>
                     <button onClick={handleVerifiedLibrariesRetry} className="ml-3 px-3 py-1 rounded-md bg-red-600 text-white hover:bg-red-700 disabled:opacity-70 flex items-center gap-2">
-                      <span>Retry</span>
+                      <span>{t.retry}</span>
                     </button>
                   </div>
                 ) : (verifiedLibs.length === 0 || verifiedTotal === 0) ? (
-                  <div className="text-sm text-gray-700">No verified libraries</div>
+                  <div className="text-sm text-gray-700">{t.noVerified}</div>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {verifiedLibs.map((lib, idx) => (
@@ -234,10 +251,10 @@ const Dashboard = () => {
                           </div>
                           <div className="text-md text-gray-600">{lib.type || '—'}</div>
                           {lib.bookCount != null && (
-                            <div className="text-xs text-gray-600 mt-1">{String(lib.bookCount)} Books</div>
+                            <div className="text-xs text-gray-600 mt-1">{String(lib.bookCount)} {t.books}</div>
                           )}
                           <div className="mt-3 flex justify-end">
-                            <button onClick={() => navigate(`/PublicProfile/${lib.id}`)} className="px-3 py-1.5 text-sm rounded-md bg-[#2E6BAA] text-white hover:bg-[#1B4B8A]">View</button>
+                            <button onClick={() => navigate(`/PublicProfile/${lib.id}`)} className="px-3 py-1.5 text-sm rounded-md bg-[#2E6BAA] text-white hover:bg-[#1B4B8A]">{t.view}</button>
                           </div>
                         </div>
                       </div>

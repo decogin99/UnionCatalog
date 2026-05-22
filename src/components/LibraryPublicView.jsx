@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { bookService } from '../services/bookService';
 import { MdVerified, MdWorkspacePremium } from "react-icons/md";
+import { useLanguage } from '../context/AuthProvider.jsx';
 export default function LibraryPublicView({
   profileImageUrl = '',
   coverImageUrl = '',
@@ -17,6 +18,7 @@ export default function LibraryPublicView({
   address = '',
   profileId = null,
 }) {
+  const { language } = useLanguage();
   const navigate = useNavigate();
   const [engBooks, setEngBooks] = useState([]);
   const [mmBooks, setMmBooks] = useState([]);
@@ -32,6 +34,20 @@ export default function LibraryPublicView({
   const [mmTotalItems, setMmTotalItems] = useState(0);
   const [coverOk, setCoverOk] = useState(!!coverImageUrl);
   const [profileOk, setProfileOk] = useState(!!profileImageUrl);
+
+  const t = language === 'mm'
+    ? {
+        visibility: 'မြင်နိုင်မှု', email: 'အီးမေးလ်', phone: 'ဖုန်း', location: 'တည်နေရာ', address: 'လိပ်စာ',
+        englishBooks: 'အင်္ဂလိပ် စာအုပ်များ', myanmarBooks: 'မြန်မာ စာအုပ်များ', viewAll: 'အားလုံးကြည့်မည်',
+        prev: 'ရှေ့', next: 'နောက်', noEnglishBooks: 'အင်္ဂလိပ် စာအုပ်များ မရှိပါ', noMyanmarBooks: 'မြန်မာ စာအုပ်များ မရှိပါ',
+        banned: 'ဤစာကြည့်တိုက်ကို တားမြစ်ထားသည်'
+      }
+    : {
+        visibility: 'Visibility', email: 'Email', phone: 'Phone', location: 'Location', address: 'Address',
+        englishBooks: 'English Books', myanmarBooks: 'Myanmar Books', viewAll: 'View All',
+        prev: 'Prev', next: 'Next', noEnglishBooks: 'No English books', noMyanmarBooks: 'No Myanmar books',
+        banned: 'This library has been banned'
+      };
   useEffect(() => { setCoverOk(!!coverImageUrl); }, [coverImageUrl]);
   useEffect(() => { setProfileOk(!!profileImageUrl); }, [profileImageUrl]);
   const imageBase = (import.meta.env.VITE_IMAGE_BASE_URL || '').replace(/\/+$/, '');
@@ -139,31 +155,31 @@ export default function LibraryPublicView({
                 ${libraryVisibility === 'Private' ? 'bg-red-50 text-red-700 ring-red-200' : 
                   'bg-green-50 text-green-700 ring-green-200'}`}
               >
-                Visibility : {libraryVisibility}
+                {t.visibility} : {libraryVisibility}
               </span>
             </span>
           </div>
           {libraryStatus === 'Banned' && (
-            <span className="inline-flex align-middle text-red-600 text-sm" title="Active Library">This library has been banned</span>
+            <span className="inline-flex align-middle text-red-600 text-sm" title="Active Library">{t.banned}</span>
           )}
         </div>
       </div>
       <div className="bg-white rounded-lg shadow-md p-6 mt-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <div className="text-xs uppercase text-gray-500">Email</div>
+            <div className="text-xs uppercase text-gray-500">{t.email}</div>
             <div className="text-gray-900">{email}</div>
           </div>
           <div>
-            <div className="text-xs uppercase text-gray-500">Phone</div>
+            <div className="text-xs uppercase text-gray-500">{t.phone}</div>
             <div className="text-gray-900">{phoneNumber}</div>
           </div>
           <div>
-            <div className="text-xs uppercase text-gray-500">Location</div>
+            <div className="text-xs uppercase text-gray-500">{t.location}</div>
             <div className="text-gray-900">{township}, {stateDivision}</div>
           </div>
           <div>
-            <div className="text-xs uppercase text-gray-500">Address</div>
+            <div className="text-xs uppercase text-gray-500">{t.address}</div>
             <div className="text-gray-900">{address}</div>
           </div>
         </div>
@@ -171,7 +187,7 @@ export default function LibraryPublicView({
         <div className="mt-6">
           <div className="mb-2 flex items-center justify-between">
             <div className="text-sm font-semibold text-gray-800">
-              English Books <span className="text-gray-600 text-sm">({engTotalItems}) <span onClick={() => navigate(`/PublicBooks/EnglishBooks?profileId=${profileId}&libraryName=${encodeURIComponent(libraryName)}`)} className="text-blue-600 hover:text-blue-800 text-xs cursor-pointer">View All</span></span>
+              {t.englishBooks} <span className="text-gray-600 text-sm">({engTotalItems}) <span onClick={() => navigate(`/PublicBooks/EnglishBooks?profileId=${profileId}&libraryName=${encodeURIComponent(libraryName)}`)} className="text-blue-600 hover:text-blue-800 text-xs cursor-pointer">{t.viewAll}</span></span>
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -179,14 +195,14 @@ export default function LibraryPublicView({
                 disabled={engPage <= 1 || engLoading}
                 className="px-3 py-1 text-xs rounded bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:opacity-50"
               >
-                Prev
+                {t.prev}
               </button>
               <button
                 onClick={onEngNext}
                 disabled={engPage >= engTotalPages || engLoading}
                 className="px-3 py-1 text-xs rounded bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:opacity-50"
               >
-                Next
+                {t.next}
               </button>
             </div>
           </div>
@@ -198,7 +214,7 @@ export default function LibraryPublicView({
           ) : engError ? (
             <div className="text-xs text-red-700">{engError}</div>
           ) : engBooks.length === 0 ? (
-            <div className="text-xs text-gray-700">No English books</div>
+            <div className="text-xs text-gray-700">{t.noEnglishBooks}</div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-10 gap-3">
               {engBooks.map((b) => (
@@ -223,7 +239,7 @@ export default function LibraryPublicView({
 
           <div className="mt-6 mb-2 flex items-center justify-between">
             <div className="text-sm font-semibold text-gray-800">
-              Myanmar Books <span className="text-gray-600 text-sm">({mmTotalItems}) <span onClick={() => navigate(`/PublicBooks/MyanmarBooks?profileId=${profileId}&libraryName=${encodeURIComponent(libraryName)}`)} className="text-blue-600 hover:text-blue-800 text-xs cursor-pointer">View All</span></span>
+              {t.myanmarBooks} <span className="text-gray-600 text-sm">({mmTotalItems}) <span onClick={() => navigate(`/PublicBooks/MyanmarBooks?profileId=${profileId}&libraryName=${encodeURIComponent(libraryName)}`)} className="text-blue-600 hover:text-blue-800 text-xs cursor-pointer">{t.viewAll}</span></span>
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -231,14 +247,14 @@ export default function LibraryPublicView({
                 disabled={mmPage <= 1 || mmLoading}
                 className="px-3 py-1 text-xs rounded bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:opacity-50"
               >
-                Prev
+                {t.prev}
               </button>
               <button
                 onClick={onMmNext}
                 disabled={mmPage >= mmTotalPages || mmLoading}
                 className="px-3 py-1 text-xs rounded bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:opacity-50"
               >
-                Next
+                {t.next}
               </button>
             </div>
           </div>
@@ -250,7 +266,7 @@ export default function LibraryPublicView({
           ) : mmError ? (
             <div className="text-xs text-red-700">{mmError}</div>
           ) : mmBooks.length === 0 ? (
-            <div className="text-xs text-gray-700">No Myanmar books</div>
+            <div className="text-xs text-gray-700">{t.noMyanmarBooks}</div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-10 gap-3">
               {mmBooks.map((b) => (

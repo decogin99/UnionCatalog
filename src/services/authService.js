@@ -10,7 +10,6 @@ export const authService = {
         rememberMe,
         userType
       });
-
       return response;
     } catch (error) {
       if (error.response?.status === 400) {
@@ -23,8 +22,21 @@ export const authService = {
   verifyOTP: async (username, otpCode, userType) => {
     try {
       const response = await api.post("auth/verify-otp", {
+        
         Username: username,
         OTPCode: otpCode,
+        UserType: userType,
+      });
+      return response;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  resendOTP: async (username, userType) => {
+    try {
+      const response = await api.post("auth/resend-otp", {
+        Username: username,
         UserType: userType,
       });
       return response;

@@ -22,17 +22,21 @@ const Login = () => {
     try {
       const res = await authService.login(email, password, rememberMe);
       if (res?.success) {
-        const user = res?.data?.user ?? res?.user ?? {};
-        const libraryName = user.Name ?? user.name ?? '';
-        const libraryAccess = user.Access ?? user.access ?? '';
-        setUser({ 
-          email,
-          libraryName: libraryName || '',
-          libraryAccess: libraryAccess === "Verifying" ? "Free" : libraryAccess || "Free" 
-        });
         if (res.status === 202) {
+          sessionStorage.setItem('pendingUsername', email);
+          sessionStorage.setItem("pendingRememberMe", rememberMe);
+          sessionStorage.setItem("pendingUserType", "Library");
+          sessionStorage.setItem("otpExpiryTs", String(Date.now() + 5 * 60 * 1000));
           navigate("/OTPVerification");
         } else if (res.status === 200) {
+          const user = res?.data?.user ?? res?.user ?? {};
+          const libraryName = user.Name ?? user.name ?? '';
+          const libraryAccess = user.Access ?? user.access ?? '';
+          setUser({ 
+            email : email || '',
+            libraryName: libraryName || '',
+            libraryAccess: libraryAccess === "Verifying" ? "Free" : libraryAccess || "Free" 
+          });
           navigate("/Dashboard");
         }
       } else {

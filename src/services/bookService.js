@@ -213,4 +213,17 @@ export const bookService = {
       throw error.response?.data || error.message;
     }
   },
+
+  getBookReport: async (pageNumber = 1, dateFrom = "", dateTo = "") => {
+    try {
+      const res = await api.get('Book/book-report', {
+        pageNumber,
+        dateFrom,
+        dateTo,
+      });
+      return res;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
 };

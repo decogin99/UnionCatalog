@@ -17,7 +17,9 @@ const ResetPassword = () => {
 
   const [isVerifying, setIsVerifying] = useState(true);
   const [isValid, setIsValid] = useState(false);
+  const [memberSuccess, setMemberSuccess] = useState(false);
   const navigate = useNavigate();
+  const isMember = (userType === 'Member');
 
   useEffect(() => {
     setIsVerifying(true);
@@ -68,7 +70,11 @@ const ResetPassword = () => {
       const res = await authService.confirmResetPassword(token, email, userType, newPassword);
       if (res?.success) {
         setMessage(res?.message || 'Password has been reset successfully');
-        setTimeout(() => navigate('/Login'), 2000);
+        if (isMember) {
+          setMemberSuccess(true);
+        } else {
+          setTimeout(() => navigate('/Login'), 2000);
+        }
       } else {
         setError(res?.message || 'Failed to reset password');
       }
@@ -99,24 +105,37 @@ const ResetPassword = () => {
     ) : (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0C2D57] via-[#1B4B8A] to-[#2E6BAA] px-4 sm:px-6">
         <div className="bg-white/95 backdrop-blur-sm p-8 sm:p-10 rounded-2xl shadow-xl w-full max-w-md ring-1 ring-white/50">
-          <div className="text-center mb-6">
-            <div className="inline-flex items-center justify-center rounded-full bg-gradient-to-br from-[#1B4B8A] to-[#2E6BAA] text-white w-12 h-12 mb-3 shadow-md">
-              <FiLock size={22} />
+          {isMember && memberSuccess ? (
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center rounded-full bg-gradient-to-br from-[#1B4B8A] to-[#2E6BAA] text-white w-12 h-12 mb-3 shadow-md">
+                <FiLock size={22} />
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0C2D57]">Password Reset Successful</h1>
+              {email && <p className="mt-2 text-sm sm:text-base text-[#1B4B8A]">{email}</p>}
+              <p className="mt-2 text-sm text-gray-600">Your password has been reset successfully.</p>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#1B4B8A] to-[#2E6BAA]">Set New Password</h1>
-            {email && <p className="mt-2 text-sm sm:text-base text-[#1B4B8A]">{email}</p>}
-          </div>
-          <form onSubmit={handleSubmit} className="space-y-6 font-medium">
-            <div>
-              <input type="password" placeholder="New password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]" required disabled={isLoading} />
-            </div>
-            <div>
-              <input type="password" placeholder="Confirm new password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]" required disabled={isLoading} />
-            </div>
-            {error && (<div className="rounded-xl px-4 py-3 text-sm bg-red-50 text-red-700 ring-1 ring-red-200">{error}</div>)}
-            {message && (<div className="rounded-xl px-4 py-3 text-sm bg-green-50 text-green-700 ring-1 ring-green-200">{message}</div>)}
-            <button type="submit" disabled={isLoading} className={`w-full bg-[#2E6BAA] text-white py-3 rounded-xl transition duration-300 shadow-md ${isLoading ? 'opacity-70' : 'hover:bg-opacity-90'}`}>{isLoading ? 'Updating...' : 'Update Password'}</button>
-          </form>
+          ) : (
+            <>
+              <div className="text-center mb-6">
+                <div className="inline-flex items-center justify-center rounded-full bg-gradient-to-br from-[#1B4B8A] to-[#2E6BAA] text-white w-12 h-12 mb-3 shadow-md">
+                  <FiLock size={22} />
+                </div>
+                <h1 className="text-3xl sm:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#1B4B8A] to-[#2E6BAA]">Set New Password</h1>
+                {email && <p className="mt-2 text-sm sm:text-base text-[#1B4B8A]">{email}</p>}
+              </div>
+              <form onSubmit={handleSubmit} className="space-y-6 font-medium">
+                <div>
+                  <input type="password" placeholder="New password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]" required disabled={isLoading} />
+                </div>
+                <div>
+                  <input type="password" placeholder="Confirm new password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]" required disabled={isLoading} />
+                </div>
+                {error && (<div className="rounded-xl px-4 py-3 text-sm bg-red-50 text-red-700 ring-1 ring-red-200">{error}</div>)}
+                {message && (<div className="rounded-xl px-4 py-3 text-sm bg-green-50 text-green-700 ring-1 ring-green-200">{message}</div>)}
+                <button type="submit" disabled={isLoading} className={`w-full bg-[#2E6BAA] text-white py-3 rounded-xl transition duration-300 shadow-md ${isLoading ? 'opacity-70' : 'hover:bg-opacity-90'}`}>{isLoading ? 'Updating...' : 'Update Password'}</button>
+              </form>
+            </>
+          )}
         </div>
       </div>
     )

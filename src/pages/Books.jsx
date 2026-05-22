@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 import { FiGrid, FiList, FiFilter, FiSearch, FiPlus } from 'react-icons/fi';
@@ -7,7 +7,7 @@ import { RiResetRightFill } from "react-icons/ri";
 import { bookService } from '../services/bookService';
 import { libraryService } from '../services/libraryService';
 import { marcService } from '../services/marcService';
-import { useAuth } from "../context/AuthProvider.jsx";
+import { useAuth, useLanguage } from "../context/AuthProvider.jsx";
 import ConfirmDialog from '../components/common/ConfirmDialog';
 import FreeUsageDialog from '../components/common/FreeUsageDialog';
 import BarcodePrint from '../components/barcode/BarcodePrint';
@@ -17,6 +17,8 @@ import BookCopies from '../components/BookCopies';
 
 const Books = () => {
     const { user } = useAuth();
+    const { language } = useLanguage();
+    const { bookCategory } = useParams();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     const [books, setBooks] = useState([]);
@@ -89,14 +91,45 @@ const Books = () => {
     const [copiesOpen, setCopiesOpen] = useState(false);
     const [selectedBook, setSelectedBook] = useState(null);
 
-    const location = useLocation();
     const navigate = useNavigate();
 
     const [freePromptOpen, setFreePromptOpen] = useState(false);
 
     // Determine book type from URL parameters
-    const bookType = location.pathname.includes('English') ? 'English' : 'Myanmar';
+    // const bookType = location.pathname.startsWith('/EnglishBooks')
+    // ? 'English'
+    // : 'Myanmar';
+    const bookType = bookCategory === 'EnglishBooks' ? 'English' : 'Myanmar';
+
     const imageBase = import.meta.env.VITE_IMAGE_BASE_URL || '';
+
+    const t = language === 'mm' ? {
+      english: 'အင်္ဂလိပ်', myanmar: 'မြန်မာ',  books: 'စာအုပ်များ', exportMARC: 'MARC ထုတ်မည်', generateBarcodes: 'ဘားကုဒ်ထုတ်မည်', exportExcel: 'Excel ထုတ်မည်', addNewBook: 'စာအုပ်အသစ်ထည့်မည်',
+      title: 'ခေါင်းစဉ်', author: 'စာရေးသူ', publishedYear: 'ထုတ်ဝေသည့်နှစ်', isbn: 'ISBN', barcodeNo: 'ဘားကုဒ်နံပါတ်', accessionNo: 'Accession နံပါတ်', date: 'ရက်စွဲ',
+      search: 'ရှာမည်', reset: 'ပြန်စမည်', advancedSearch: 'အဆင့်မြင့်ရှာဖွေမှု', grid: 'Grid', list: 'List', retry: 'ထပ်စမ်းမည်',
+      noBooksFound: 'စာအုပ်မတွေ့ပါ', noBooksHint: 'သင်၏ catalog ထဲသို့ စာအုပ်အသစ် ထည့်ကြည့်ပါ။',
+      page: 'စာမျက်နှာ', of: 'မှ', totalBooks: 'စုစုပေါင်း စာအုပ်', prev: 'ယခင်', next: 'နောက်',
+      startsWith: 'အစမှ', endsWith: 'အဆုံးမှ', from: 'မှ', to: 'သို့', apply: 'ရှာမည်', cancel: 'ပယ်ဖျက်မည်',
+      deleteBook: 'စာအုပ်ဖျက်ရန်', deleting: 'ဖျက်နေသည်...', delete: 'ဖျက်မည်', limitedAccess: 'အသုံးပြုခွင့် ကန့်သတ်ထားသည်',
+      exportBooks: 'စာအုပ်များထုတ်မည်', exportCurrentPage: 'လက်ရှိစာမျက်နှာ ထုတ်မည်', exportSelectedBooks: 'ရွေးထားသော စာအုပ်များ ထုတ်မည်', exportAll: 'အားလုံးထုတ်မည်',
+      fileReady: 'ဖိုင်အဆင်သင့်', downloaded: 'သိမ်းဆည်းပြီး', download: 'သိမ်းမည်', exporting: 'ထုတ်နေသည်...', export: 'ထုတ်မည်', selected: 'ရွေးထားသည်',
+      generateCurrentPage: 'လက်ရှိစာမျက်နှာ ထုတ်မည်', generateSelectedBooks: 'ရွေးထားသော စာအုပ်များ ထုတ်မည်', generateCustom: 'အလိုအလျောက် (ဘားကုဒ် နံပါတ် မှ - အထိ)', fromBarcodeId: 'ဘားကုဒ် နံပါတ် မှ', toBarcodeId: 'ဘားကုဒ် နံပါတ် အထိ', generating: 'ထုတ်နေသည်...', generate: 'ထုတ်မည်',
+      barcodePreview: 'ဘားကုဒ် အစမ်းစာရင်း', close: 'ပိတ်မည်',
+      bookCopies: { title: 'မိတ္တူများ', fallbackBook: 'စာအုပ်', close: 'ပိတ်မည်', accessionNo: 'Accession နံပါတ်', barcodeNo: 'ဘားကုဒ်နံပါတ်', callNo: 'Call နံပါတ်', actions: 'လုပ်ဆောင်ချက်များ', noCopiesFound: 'မိတ္တူမတွေ့ပါ', save: 'သိမ်းမည်', saving: 'သိမ်းနေသည်...', edit: 'ပြင်မည်', delete: 'ဖျက်မည်', cancel: 'ပယ်ဖျက်မည်', adding: 'ထည့်နေသည်...', addCopy: 'မိတ္တူထည့်မည်' }
+    } : {
+      books: 'Books', exportMARC: 'Export MARC', generateBarcodes: 'Generate Barcodes', exportExcel: 'Export Excel', addNewBook: 'Add New Book',
+      title: 'Title', author: 'Author', publishedYear: 'Published Year', isbn: 'ISBN', barcodeNo: 'Barcode No', accessionNo: 'Accession No', date: 'Date',
+      search: 'Search', reset: 'Reset', advancedSearch: 'Advanced Search', grid: 'Grid', list: 'List', retry: 'Retry',
+      noBooksFound: 'No books found', noBooksHint: `Try adding a new book to your ${bookType} catalog.`,
+      page: 'Page', of: 'of', totalBooks: 'total Books', prev: 'Prev', next: 'Next',
+      startsWith: 'Starts with', endsWith: 'Ends with', from: 'From', to: 'To', apply: 'Apply', cancel: 'Cancel',
+      deleteBook: 'Delete Book', deleting: 'Deleting...', delete: 'Delete', limitedAccess: 'Limited Access',
+      exportBooks: 'Export Books', exportCurrentPage: 'Export current page', exportSelectedBooks: 'Export selected books', exportAll: 'Export all',
+      fileReady: 'File ready', downloaded: 'Downloaded', download: 'Download', exporting: 'Exporting...', export: 'Export', selected: 'selected',
+      generateCurrentPage: 'Generate current page', generateSelectedBooks: 'Generate selected books', generateCustom: 'Generate custom (BarCode ID range)', fromBarcodeId: 'From BarCode ID', toBarcodeId: 'To BarCode ID', generating: 'Generating...', generate: 'Generate',
+      barcodePreview: 'BarCodes Preview', close: 'Close',
+      bookCopies: { title: 'Copies', fallbackBook: 'Book', close: 'Close', accessionNo: 'Accession No', barcodeNo: 'Barcode No', callNo: 'Call No', actions: 'Actions', noCopiesFound: 'No copies found', save: 'Save', saving: 'Saving...', edit: 'Edit', delete: 'Delete', cancel: 'Cancel', adding: 'Adding...', addCopy: 'Add Copy' }
+    };
 
     const fetchBooks = async (page = pageNumber, overrides) => {
         const ff = overrides?.filterField ?? filterField;
@@ -211,7 +244,7 @@ const Books = () => {
     useEffect(() => {
         if (initTypeRef.current === bookType) return;
         initTypeRef.current = bookType;
-        document.title = `${bookType} Books`;
+        document.title = `${bookType} ${t.books}`;
         const lastDest = localStorage.getItem('Books:lastDest');
         const savedPageRaw = localStorage.getItem(`pageNumber:${bookType}`);
         let initialPage = 1;
@@ -225,7 +258,7 @@ const Books = () => {
         if (lastDest) {
           localStorage.removeItem('Books:lastDest');
         }
-    }, [bookType]);
+    }, [bookType, t.books]);
     
     
 
@@ -289,8 +322,8 @@ const Books = () => {
     const openUpdate = (book) => {
       localStorage.setItem('Books:lastDest', 'detail');
       localStorage.setItem(`pageNumber:${bookType}`, String(pageNumber));
-      const base = bookType === 'English' ? '/EnglishBooks/Update' : '/MyanmarBooks/Update';
-      navigate(`${base}/${book.bookId}`);
+
+      navigate(`/${bookCategory}/Update/${book.bookId}`);
     };
 
     const openCopies = (book) => {
@@ -311,12 +344,11 @@ const Books = () => {
     const openDetail = (book) => {
       localStorage.setItem('Books:lastDest', 'detail');
       localStorage.setItem(`pageNumber:${bookType}`, String(pageNumber));
-      const base = bookType === 'English' ? '/EnglishBooks/Detail' : '/MyanmarBooks/Detail';
       const useBookId = !!book.controlAction && !!book.bookId;
       if (useBookId) {
-        navigate(`${base}/${book.bookId}`);
+        navigate(`/${bookCategory}/Detail/${book.bookId}`);
       } else if (book.publicId) {
-        navigate(`${base}?publicId=${book.publicId}`);
+        navigate(`/${bookCategory}/Detail?publicId=${book.publicId}`);
       }
     };
 
@@ -480,33 +512,33 @@ const Books = () => {
         <div className="flex-1 lg:ml-64 mt-16 transition-all duration-300 overflow-y-auto">
               <div className="p-4 lg:px-8">
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-3 sm:mb-2">
-                      <h1 className="text-1xl sm:text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#1B4B8A] to-[#2E6BAA]">{bookType} Books</h1>
+                      <h1 className="text-1xl sm:text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#1B4B8A] to-[#2E6BAA]">{bookType === 'English' ? t.english : t.myanmar} {t.books}</h1>
                       
                       <div className="flex flex-col sm:flex-row sm:justify-between gap-3">
                         <button
                           onClick={() => { if (user?.libraryAccess === 'Free') { setFreePromptOpen(true); } else { setMarcOpen(true); } }}
                           className={`px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md hover:bg-opacity-90 transition-colors duration-200`}
                         >
-                          Export MARC
+                          {t.exportMARC}
                         </button>
                         <button
                           onClick={() => { if (user?.libraryAccess === 'Free') { setFreePromptOpen(true); } else { setBarcodeOpen(true); } }}
                           className={`px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md hover:bg-opacity-90 transition-colors duration-200`}
                         >
-                          Generate Barcodes
+                          {t.generateBarcodes}
                         </button>
                         <button
                           onClick={() => { if (user?.libraryAccess === 'Free') { setFreePromptOpen(true); } else { setExportOpen(true); } }}
                           className={`px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md hover:bg-opacity-90 transition-colors duration-200`}
                         >
-                          Export Excel
+                          {t.exportExcel}
                         </button>
                         <button
-                          onClick={() => navigate(bookType === 'English' ? '/EnglishBooks/New' : '/MyanmarBooks/New')}
+                          onClick={() => navigate(`/${bookCategory}/New`)}
                           className="px-4 py-2 bg-[#2E6BAA] hover:bg-[#1B4B8A] text-white rounded-md hover:bg-opacity-90 transition-colors duration-200 inline-flex items-center gap-2"
-                      >
-                          <FiPlus size={15} /> Add New Book
-                      </button>
+                        >
+                            <FiPlus size={15} /> {t.addNewBook}
+                        </button>
                       </div>
                   </div>
 
@@ -514,13 +546,13 @@ const Books = () => {
                     <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto mb-4">
                         <div className="inline-flex items-center gap-2 w-full sm:w-auto">
                           <select value={filterField} onChange={(e)=>{ const v = e.target.value; setFilterField(v); setFilterQuery(''); }} className="px-3 py-2 bg-white rounded-md ring-1 ring-gray-200 focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]">
-                            <option value="title">Title</option>
-                            <option value="author">Author</option>
-                            <option value="year">Published Year</option>
-                            <option value="isbn">ISBN</option>
-                            <option value="barcodeNo">Barcode No</option>
-                            <option value="accessionNo">Accession No</option>
-                            <option value="date">Date</option>
+                            <option value="title">{t.title}</option>
+                            <option value="author">{t.author}</option>
+                            <option value="year">{t.publishedYear}</option>
+                            <option value="isbn">{t.isbn}</option>
+                            <option value="barcodeNo">{t.barcodeNo}</option>
+                            <option value="accessionNo">{t.accessionNo}</option>
+                            <option value="date">{t.date}</option>
                           </select>
                           {filterField === 'date' ? 
                           (
@@ -535,7 +567,9 @@ const Books = () => {
                           (
                             <input
                               type={filterField === 'year' ? 'number' : 'text'}
-                              placeholder={`Search with ${filterField === 'title' ? 'Title' : filterField === 'author' ? 'Author' : filterField === 'year' ? 'Published Year' : filterField === 'isbn' ? 'ISBN' : filterField === 'barcodeNo' ? 'Barcode No' : filterField === 'accessionNo' ? 'Accession No' : 'Keyword'}`}
+                              placeholder={language === 'mm'
+                                ? `${filterField === 'title' ? t.title : filterField === 'author' ? t.author : filterField === 'year' ? t.publishedYear : filterField === 'isbn' ? t.isbn : filterField === 'barcodeNo' ? t.barcodeNo : filterField === 'accessionNo' ? t.accessionNo : 'သော့ချက်စကားလုံး'} ဖြင့်ရှာမည်`
+                                : `Search with ${filterField === 'title' ? t.title : filterField === 'author' ? t.author : filterField === 'year' ? t.publishedYear : filterField === 'isbn' ? t.isbn : filterField === 'barcodeNo' ? t.barcodeNo : filterField === 'accessionNo' ? t.accessionNo : 'Keyword'}`}
                               value={filterQuery}
                               onChange={(e)=> setFilterQuery(e.target.value)}
                               onKeyDown={(e)=>{ if(e.key==='Enter') handleSearch(); }}
@@ -544,13 +578,13 @@ const Books = () => {
                           )}
                         </div>
                         <button onClick={handleSearch} className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 inline-flex items-center gap-2">
-                          <FiSearch size={15} /> Search
+                          <FiSearch size={15} /> {t.search}
                         </button>
                         <button onClick={handleReset} className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 inline-flex items-center gap-2">
-                          <RiResetRightFill size={15} /> Reset
+                          <RiResetRightFill size={15} /> {t.reset}
                         </button>
                         <button type="button" onClick={() => { if (user?.libraryAccess === 'Free') { setFreePromptOpen(true); } else { setAdvOpen(true); } }} className="px-4 py-2 bg-[#2E6BAA] hover:bg-[#1B4B8A] text-white rounded-md inline-flex items-center gap-2">
-                          <FiFilter size={15} /> Advanced Search
+                          <FiFilter size={15} /> {t.advancedSearch}
                         </button>
                         <div className="inline-flex w-full sm:w-auto items-center bg-white/95 rounded-xl ring-1 ring-gray-200 overflow-hidden shadow-sm ml-auto">
                             <button
@@ -561,7 +595,7 @@ const Books = () => {
                                 }}
                                 className={`px-3 py-2 text-sm flex items-center justify-center gap-2 w-1/2 sm:w-auto ${viewMode==='grid' ? 'bg-[#2E6BAA] text-white' : 'text-gray-700 hover:bg-gray-50'}`}
                             >
-                                <FiGrid size={15} /> Grid
+                                <FiGrid size={15} /> {t.grid}
                             </button>
                             <button
                                 type="button"
@@ -571,7 +605,7 @@ const Books = () => {
                                 }}
                                 className={`px-3 py-2 text-sm flex items-center justify-center gap-2 w-1/2 sm:w-auto ${viewMode==='list' ? 'bg-[#2E6BAA] text-white' : 'text-gray-700 hover:bg-gray-50'}`}
                             >
-                                <FiList size={16} /> List
+                                <FiList size={16} /> {t.list}
                             </button>
                         </div>
                     </div>
@@ -587,7 +621,7 @@ const Books = () => {
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0a12 12 0 100 24v-4a8 8 0 01-8-8z"></path>
                           </svg>
                         )}
-                        <span>Retry</span>
+                        <span>{t.retry}</span>
                       </button>
                     </div>
                   )}
@@ -608,9 +642,9 @@ const Books = () => {
                           <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-3">
                               <span className="text-2xl text-gray-400">📚</span>
                           </div>
-                          <h2 className="text-lg font-semibold text-gray-900 mb-1">No books found</h2>
-                          <p className="text-sm text-gray-600 mb-4">Try adding a new book to your {bookType} catalog.</p>
-                          <button onClick={() => navigate(bookType === 'English' ? '/EnglishBooks/New' : '/MyanmarBooks/New')} className="px-4 py-2 bg-[#2E6BAA] text-white rounded-md hover:bg-opacity-90">Add New Book</button>
+                          <h2 className="text-lg font-semibold text-gray-900 mb-1">{t.noBooksFound}</h2>
+                          <p className="text-sm text-gray-600 mb-4">{t.noBooksHint}</p>
+                          <button onClick={() => navigate(`/${bookCategory}/New`)} className="px-4 py-2 bg-[#2E6BAA] text-white rounded-md hover:bg-opacity-90">{t.addNewBook}</button>
                       </div>
                     ) : (
                       viewMode === 'grid' ? (
@@ -649,7 +683,7 @@ const Books = () => {
               <div className="px-4 lg:px-8 pb-6">
                 <div className="mt-1 px-3 py-2 bg-white rounded-xl ring-1 ring-gray-200 flex items-center justify-between">
                   <div className="text-sm text-gray-700">
-                    Page {pageNumber} of {totalPages} • {totalItems} total Books
+                    {t.page} {pageNumber} {t.of} {totalPages} • {totalItems} {t.totalBooks}
                   </div>
                   <div className="flex items-center gap-2">
                     <button
@@ -657,14 +691,14 @@ const Books = () => {
                       disabled={pageNumber <= 1 || isLoading}
                       className="px-3 py-1 text-sm rounded bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:opacity-50"
                     >
-                      Prev
+                      {t.prev}
                     </button>
                     <button
                       onClick={() => { if (pageNumber < totalPages) { goToPage(pageNumber + 1); } }}
                       disabled={pageNumber >= totalPages || isLoading}
                       className="px-3 py-1 text-sm rounded bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:opacity-50"
                     >
-                      Next
+                      {t.next}
                     </button>
                   </div>
                 </div>
@@ -675,47 +709,47 @@ const Books = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/40" onClick={() => setAdvOpen(false)}></div>
           <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 ring-1 ring-gray-100">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">Advanced Search</h2>
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">{t.advancedSearch}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2">
-                <label className="text-sm text-gray-600">Title</label>
+                <label className="text-sm text-gray-600">{t.title}</label>
                 <div className="mt-1 flex gap-2">
                   <input type="text" value={advTitleTerm} onChange={(e)=>setAdvTitleTerm(e.target.value)} className="flex-1 px-3 py-2 bg-white rounded-md ring-1 ring-gray-200 focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]" />
                   <select value={advTitleMode} onChange={(e)=>setAdvTitleMode(e.target.value)} className="w-36 px-3 py-2 bg-white rounded-md ring-1 ring-gray-200 focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]">
-                    <option value="starts">Starts with</option>
-                    <option value="ends">Ends with</option>
+                    <option value="starts">{t.startsWith}</option>
+                    <option value="ends">{t.endsWith}</option>
                   </select>
                 </div>
               </div>
               <div className="sm:col-span-2">
-                <label className="text-sm text-gray-600">Author</label>
+                <label className="text-sm text-gray-600">{t.author}</label>
                 <div className="mt-1 flex gap-2">
                   <input type="text" value={advAuthorTerm} onChange={(e)=>setAdvAuthorTerm(e.target.value)} className="flex-1 px-3 py-2 bg-white rounded-md ring-1 ring-gray-200 focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]" />
                   <select value={advAuthorMode} onChange={(e)=>setAdvAuthorMode(e.target.value)} className="w-36 px-3 py-2 bg-white rounded-md ring-1 ring-gray-200 focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]">
-                    <option value="starts">Starts with</option>
-                    <option value="ends">Ends with</option>
+                    <option value="starts">{t.startsWith}</option>
+                    <option value="ends">{t.endsWith}</option>
                   </select>
                 </div>
               </div>
               <div className="sm:col-span-2">
-                <label className="text-sm text-gray-600">Published Year</label>
+                <label className="text-sm text-gray-600">{t.publishedYear}</label>
                 <div className="mt-1 grid grid-cols-2 gap-2">
-                  <input type="number" placeholder="From" value={advYearFrom} onChange={(e)=>setAdvYearFrom(e.target.value)} className="w-full px-3 py-2 bg-white rounded-md ring-1 ring-gray-200 focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]" />
-                  <input type="number" placeholder="To" value={advYearTo} onChange={(e)=>setAdvYearTo(e.target.value)} className="w-full px-3 py-2 bg-white rounded-md ring-1 ring-gray-200 focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]" />
+                  <input type="number" placeholder={t.from} value={advYearFrom} onChange={(e)=>setAdvYearFrom(e.target.value)} className="w-full px-3 py-2 bg-white rounded-md ring-1 ring-gray-200 focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]" />
+                  <input type="number" placeholder={t.to} value={advYearTo} onChange={(e)=>setAdvYearTo(e.target.value)} className="w-full px-3 py-2 bg-white rounded-md ring-1 ring-gray-200 focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]" />
                 </div>
               </div>
               <div className="sm:col-span-2">
-                <label className="text-sm text-gray-600">Date</label>
+                <label className="text-sm text-gray-600">{t.date}</label>
                 <div className="mt-1 grid grid-cols-2 gap-2">
-                  <input type="date" placeholder="From" value={advDateFrom} onChange={(e)=>setAdvDateFrom(e.target.value)} className="w-full px-3 py-2 bg-white rounded-md ring-1 ring-gray-200 focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]" />
-                  <input type="date" placeholder="To" value={advDateTo} onChange={(e)=>setAdvDateTo(e.target.value)} className="w-full px-3 py-2 bg-white rounded-md ring-1 ring-gray-200 focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]" />
+                  <input type="date" placeholder={t.from} value={advDateFrom} onChange={(e)=>setAdvDateFrom(e.target.value)} className="w-full px-3 py-2 bg-white rounded-md ring-1 ring-gray-200 focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]" />
+                  <input type="date" placeholder={t.to} value={advDateTo} onChange={(e)=>setAdvDateTo(e.target.value)} className="w-full px-3 py-2 bg-white rounded-md ring-1 ring-gray-200 focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]" />
                 </div>
               </div>
             </div>
             <div className="mt-6 flex justify-end gap-2">
               {/* <button type="button" onClick={() => { setAdvTitleTerm(''); setAdvTitleMode('starts'); setAdvAuthorTerm(''); setAdvAuthorMode('starts'); setAdvYearFrom(''); setAdvYearTo(''); }} className="px-4 py-2 rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200">Reset</button> */}
-              <button type="button" onClick={async () => { await goToPage(1); setAdvOpen(false); }} className="px-4 py-2 rounded-md bg-[#2E6BAA] text-white hover:bg-opacity-90">Apply</button>
-              <button type="button" onClick={() => setAdvOpen(false)} className="px-4 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200">Cancel</button>
+              <button type="button" onClick={async () => { await goToPage(1); setAdvOpen(false); }} className="px-4 py-2 rounded-md bg-[#2E6BAA] text-white hover:bg-opacity-90">{t.apply}</button>
+              <button type="button" onClick={() => setAdvOpen(false)} className="px-4 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200">{t.cancel}</button>
             </div>
           </div>
         </div>
@@ -725,36 +759,36 @@ const Books = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/40" onClick={() => { if (marcUrl) { URL.revokeObjectURL(marcUrl); } setMarcUrl(''); setMarcFilename(''); setMarcError(''); setMarcDownloaded(false); setMarcOpen(false); }}></div>
           <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 ring-1 ring-gray-100">
-            <h2 className="text-lg font-semibold text-gray-800 mb-2">Export MARC</h2>
+            <h2 className="text-lg font-semibold text-gray-800 mb-2">{t.exportMARC}</h2>
             {marcError && (
               <div className="mb-3 rounded-xl px-4 py-3 text-sm bg-red-50 text-red-700 ring-1 ring-red-200">{marcError}</div>
             )}
             <div className="space-y-4">
               <label className="flex items-center gap-2">
                 <input type="radio" id="marc-current" name="marcMode" value="current" checked={marcMode==='current'} onChange={() => setMarcMode('current')} />
-                <span htmlFor="marc-current" className="text-sm text-gray-800">Export current page</span>
+                <span htmlFor="marc-current" className="text-sm text-gray-800">{t.exportCurrentPage}</span>
               </label>
               <label className="flex items-center gap-2">
                 <input type="radio" id="marc-selected" name="marcMode" value="selected" checked={marcMode==='selected'} onChange={() => setMarcMode('selected')} />
-                <span htmlFor="marc-selected" className="text-sm text-gray-800">Export selected books</span>
+                <span htmlFor="marc-selected" className="text-sm text-gray-800">{t.exportSelectedBooks}</span>
               </label>
             </div>
 
             {marcUrl && (
               <div className="mt-3 rounded-xl px-4 py-3 bg-green-50 ring-1 ring-green-200">
-                  <div className="text-sm text-green-800 mb-2">File ready: {marcFilename}</div>
+                  <div className="text-sm text-green-800 mb-2">{t.fileReady}: {marcFilename}</div>
                   <a
                     href={marcUrl}
                     download={marcFilename || 'BooksMARC.txt'} 
                     onClick={() => { setMarcDownloaded(true); setTimeout(() => setMarcDownloaded(false), 2000); }}
                     className="inline-block px-3 py-1 text-sm rounded-md bg-[#2E6BAA] text-white hover:bg-opacity-90"
-                  >{marcDownloaded ? 'Downloaded' : 'Download'}</a>
+                  >{marcDownloaded ? t.downloaded : t.download}</a>
                 </div>
             )}
 
             <div className="mt-6 flex justify-end gap-2">
-              <button type="button" onClick={handleMarcExport} disabled={marcExporting || (marcMode==='selected' && selectedIds.size===0)} className="px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700 disabled:opacity-60">{marcExporting ? 'Exporting...' : 'Export'}</button>
-              <button type="button" onClick={() => { if (marcUrl) { URL.revokeObjectURL(marcUrl); } setMarcUrl(''); setMarcFilename(''); setMarcError(''); setMarcOpen(false); }} className="px-4 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200">Cancel</button>
+              <button type="button" onClick={handleMarcExport} disabled={marcExporting || (marcMode==='selected' && selectedIds.size===0)} className="px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700 disabled:opacity-60">{marcExporting ? t.exporting : t.export}</button>
+              <button type="button" onClick={() => { if (marcUrl) { URL.revokeObjectURL(marcUrl); } setMarcUrl(''); setMarcFilename(''); setMarcError(''); setMarcOpen(false); }} className="px-4 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200">{t.cancel}</button>
             </div>
           </div>
         </div>
@@ -764,42 +798,42 @@ const Books = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/40" onClick={() => { if (exportUrl) { URL.revokeObjectURL(exportUrl); } setExportUrl(''); setExportFilename(''); setExportError(''); setExportDownloaded(false); setExportOpen(false); }}></div>
           <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 ring-1 ring-gray-100">
-            <h2 className="text-lg font-semibold text-gray-800 mb-2">Export Books</h2>
+            <h2 className="text-lg font-semibold text-gray-800 mb-2">{t.exportBooks}</h2>
             {exportError && (
               <div className="mb-3 rounded-xl px-4 py-3 text-sm bg-red-50 text-red-700 ring-1 ring-red-200">{exportError}</div>
             )}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <input type="radio" id="exp-current" name="exp-mode" value="current" checked={exportMode==='current'} onChange={(e)=>setExportMode(e.target.value)} />
-                <label htmlFor="exp-current" className="text-sm text-gray-800">Export current page</label>
+                <label htmlFor="exp-current" className="text-sm text-gray-800">{t.exportCurrentPage}</label>
               </div>
               <div className="flex items-center gap-2">
                 <input type="radio" id="exp-selected" name="exp-mode" value="selected" checked={exportMode==='selected'} onChange={(e)=>setExportMode(e.target.value)} />
-                <label htmlFor="exp-selected" className="text-sm text-gray-800">Export selected books{selectedIds.size > 0 ? ` (${selectedIds.size} selected)` : ''}</label>
+                <label htmlFor="exp-selected" className="text-sm text-gray-800">{t.exportSelectedBooks}{selectedIds.size > 0 ? ` (${selectedIds.size} ${t.selected})` : ''}</label>
               </div>
               <div className="flex items-center gap-2">
                 <input type="radio" id="exp-all" name="exp-mode" value="all" checked={exportMode==='all'} onChange={(e)=>setExportMode(e.target.value)} />
-                <label htmlFor="exp-all" className="text-sm text-gray-800">Export all</label>
+                <label htmlFor="exp-all" className="text-sm text-gray-800">{t.exportAll}</label>
               </div>
             </div>
 
             {exportUrl && (
               <div className="mt-3 rounded-xl px-4 py-3 bg-green-50 ring-1 ring-green-200">
-                <div className="text-sm text-green-800 mb-2">File ready: {exportFilename}</div>
+                <div className="text-sm text-green-800 mb-2">{t.fileReady}: {exportFilename}</div>
                 <a
                   href={exportUrl}
                   download={exportFilename || 'BooksExcel.xlsx'} 
                   onClick={() => { setExportDownloaded(true); setTimeout(() => setExportDownloaded(false), 2000); }}
                   className="inline-block px-3 py-1 text-sm rounded-md bg-[#2E6BAA] text-white hover:bg-opacity-90"
-                >{exportDownloaded ? 'Downloaded' : 'Download'}</a>
+                >{exportDownloaded ? t.downloaded : t.download}</a>
               </div>
             )}
 
             <div className="mt-6 flex justify-end gap-2">
               <button type="button" onClick={handleExport} disabled={exporting || (exportMode==='selected' && selectedIds.size===0)} className="px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700 disabled:opacity-60">
-                {exporting ? 'Exporting...' : 'Export'}
+                {exporting ? t.exporting : t.export}
               </button>
-              <button type="button" onClick={() => { if (exportUrl) { URL.revokeObjectURL(exportUrl); } setExportUrl(''); setExportFilename(''); setExportError(''); setExportDownloaded(false); setExportOpen(false); }} className="px-4 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200">Cancel</button>
+              <button type="button" onClick={() => { if (exportUrl) { URL.revokeObjectURL(exportUrl); } setExportUrl(''); setExportFilename(''); setExportError(''); setExportDownloaded(false); setExportOpen(false); }} className="px-4 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200">{t.cancel}</button>
             </div>
           </div>
         </div>
@@ -811,35 +845,35 @@ const Books = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/40" onClick={() => { setBarcodeOpen(false); setBarcodeMode('current'); setBarcodeFromId(''); setBarcodeToId(''); }}></div>
           <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 ring-1 ring-gray-100">
-            <h2 className="text-lg font-semibold text-gray-800 mb-2">Generate Barcodes</h2>
+            <h2 className="text-lg font-semibold text-gray-800 mb-2">{t.generateBarcodes}</h2>
             {barcodeError && (
               <div className="mb-3 rounded-xl px-4 py-3 text-sm bg-red-50 text-red-700 ring-1 ring-red-200">{barcodeError}</div>
             )}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <input type="radio" id="bc-current" name="bc-mode" value="current" checked={barcodeMode==='current'} onChange={(e)=>setBarcodeMode(e.target.value)} />
-                <label htmlFor="bc-current" className="text-sm text-gray-800">Generate current page</label>
+                <label htmlFor="bc-current" className="text-sm text-gray-800">{t.generateCurrentPage}</label>
               </div>
               <div className="flex items-center gap-2">
                 <input type="radio" id="bc-selected" name="bc-mode" value="selected" checked={barcodeMode==='selected'} onChange={(e)=>setBarcodeMode(e.target.value)} />
-                <label htmlFor="bc-selected" className="text-sm text-gray-800">Generate selected books{selectedIds.size > 0 ? ` (${selectedIds.size} selected)` : ''}</label>
+                <label htmlFor="bc-selected" className="text-sm text-gray-800">{t.generateSelectedBooks}{selectedIds.size > 0 ? ` (${selectedIds.size} ${t.selected})` : ''}</label>
               </div>
               <div>
                 <div className="flex items-center gap-2">
                   <input type="radio" id="bc-custom" name="bc-mode" value="custom" checked={barcodeMode==='custom'} onChange={(e)=>setBarcodeMode(e.target.value)} />
-                  <label htmlFor="bc-custom" className="text-sm text-gray-800">Generate custom (BarCode ID range)</label>
+                  <label htmlFor="bc-custom" className="text-sm text-gray-800">{t.generateCustom}</label>
                 </div>
                 {barcodeMode==='custom' && (
                   <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <input type="text" placeholder="From BarCode ID" value={barcodeFromId} onChange={(e)=>setBarcodeFromId(e.target.value)} className="w-full px-3 py-2 bg-white rounded-md ring-1 ring-gray-200 focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]" />
-                    <input type="text" placeholder="To BarCode ID" value={barcodeToId} onChange={(e)=>setBarcodeToId(e.target.value)} className="w-full px-3 py-2 bg-white rounded-md ring-1 ring-gray-200 focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]" />
+                    <input type="text" placeholder={t.fromBarcodeId} value={barcodeFromId} onChange={(e)=>setBarcodeFromId(e.target.value)} className="w-full px-3 py-2 bg-white rounded-md ring-1 ring-gray-200 focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]" />
+                    <input type="text" placeholder={t.toBarcodeId} value={barcodeToId} onChange={(e)=>setBarcodeToId(e.target.value)} className="w-full px-3 py-2 bg-white rounded-md ring-1 ring-gray-200 focus:outline-none focus:ring-2 focus:ring-[#2E6BAA]" />
                   </div>
                 )}
               </div>
             </div>
             <div className="mt-6 flex justify-end gap-2">
-              <button type="button" onClick={handleBarcodeGenerate} disabled={barcodeGenerating || (barcodeMode==='selected' && selectedIds.size===0) || (barcodeMode==='custom' && (!barcodeFromId.trim() || !barcodeToId.trim()))} className="px-4 py-2 rounded-md bg-green-600 text-white disabled:opacity-60">{barcodeGenerating ? 'Generating...' : 'Generate'}</button>
-              <button type="button" onClick={() => { setBarcodeOpen(false); setBarcodeMode('current'); setBarcodeFromId(''); setBarcodeToId(''); }} className="px-4 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200">Cancel</button>
+              <button type="button" onClick={handleBarcodeGenerate} disabled={barcodeGenerating || (barcodeMode==='selected' && selectedIds.size===0) || (barcodeMode==='custom' && (!barcodeFromId.trim() || !barcodeToId.trim()))} className="px-4 py-2 rounded-md bg-green-600 text-white disabled:opacity-60">{barcodeGenerating ? t.generating : t.generate}</button>
+              <button type="button" onClick={() => { setBarcodeOpen(false); setBarcodeMode('current'); setBarcodeFromId(''); setBarcodeToId(''); }} className="px-4 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200">{t.cancel}</button>
             </div>
           </div>
         </div>
@@ -852,8 +886,8 @@ const Books = () => {
           <div className="overlay absolute inset-0 bg-black/40" onClick={() => setBarcodePrintOpen(false)}></div>
           <div className="modal-content relative bg-white rounded-2xl shadow-xl w-full max-w-5xl p-4 ring-1 ring-gray-100">
             <div className="flex items-center justify-between mb-2">
-              <h2 className="text-lg font-semibold text-gray-800">BarCodes Preview</h2>
-              <button type="button" onClick={() => setBarcodePrintOpen(false)} className="px-3 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200">Close</button>
+              <h2 className="text-lg font-semibold text-gray-800">{t.barcodePreview}</h2>
+              <button type="button" onClick={() => setBarcodePrintOpen(false)} className="px-3 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200">{t.close}</button>
             </div>
             <div className="print-grid">
               <BarcodePrint codes={barcodeCodes} />
@@ -870,6 +904,7 @@ const Books = () => {
           open={copiesOpen}
           book={selectedBook}
           showAdminActions={true}
+          labels={t.bookCopies}
           onClose={closeCopies}
           onCopiesChanged={handleCopiesChanged}
         />
@@ -877,10 +912,10 @@ const Books = () => {
 
       <ConfirmDialog
         open={deleteOpen}
-        title="Delete Book"
+        title={t.deleteBook}
         message={deleteMessage}
-        confirmText={deleteSubmitting ? 'Deleting...' : 'Delete'}
-        cancelText="Cancel"
+        confirmText={deleteSubmitting ? t.deleting : t.delete}
+        cancelText={t.cancel}
         variant="danger"
         onCancel={closeDelete}
         onConfirm={confirmDelete}
@@ -892,7 +927,7 @@ const Books = () => {
         onVerify={() => { setFreePromptOpen(false); navigate('/LibraryVerify'); }}
         libraryName={user?.libraryName || ''}
         userType={user?.libraryAccess || 'Free'}
-        title="Limited Access"
+        title={t.limitedAccess}
       />
     </div>
   );

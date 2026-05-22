@@ -1,5 +1,6 @@
+import { useMemo } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthProvider.jsx";
+import { useAuth, useLanguage } from "../context/AuthProvider.jsx";
 import {
   FiHome,
   FiBook,
@@ -8,6 +9,7 @@ import {
   FiSettings,
   FiGrid,
   FiBookOpen,
+  FiUsers,
 } from "react-icons/fi";
 import { TbBookDownload } from "react-icons/tb";
 import { BsCardText } from "react-icons/bs";
@@ -15,32 +17,73 @@ import { LuScanBarcode } from "react-icons/lu";
 import { MdVerified } from "react-icons/md";
 import { authService } from "../services/authService";
 
+const sidebarTranslations = {
+  en: {
+    dashboard: "Dashboard",
+    englishBooks: "English Books",
+    myanmarBooks: "Myanmar Books",
+    barcodeGenerator: "Barcode Generator",
+    labelGenerator: "Label Generator",
+    ddcView: "DDC View",
+    bookReport: "Book Report",
+    marc: "MARC",
+    verifyLibrary: "Verify Library",
+    profile: "Profile",
+    members: "Members",
+    settings: "Settings",
+    admin: "Admin",
+    logout: "Logout",
+  },
+  mm: {
+    dashboard: "ပင်မစာမျက်နှာ",
+    englishBooks: "အင်္ဂလိပ် စာအုပ်များ",
+    myanmarBooks: "မြန်မာ စာအုပ်များ",
+    barcodeGenerator: "ဘားကုဒ် ထုတ်လုပ်ရန်",
+    labelGenerator: "လေဘယ် ထုတ်လုပ်ရန်",
+    ddcView: "DDC ကြည့်ရှုရန်",
+    bookReport: "စာအုပ် အစီရင်ခံစာ",
+    marc: "MARC",
+    verifyLibrary: "စာကြည့်တိုက် အတည်ပြုရန်",
+    profile: "သင့်စာကြည့်တိုက်",
+    members: "မန်ဘာများ",
+    settings: "ပြင်ဆင်ရန်",
+    admin: "အက်မင်",
+    logout: "ထွက်မည်",
+  },
+};
+
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, setUser } = useAuth();
+  const { language } = useLanguage();
 
   const baseItems = [
-    { path: "/Dashboard", icon: <FiHome size={15} />, label: "Dashboard" },
-    { path: "/EnglishBooks", icon: <FiBook size={15} />, label: "English Books" },
-    { path: "/MyanmarBooks", icon: <FiBook size={15} />, label: "Myanmar Books" },
-    { path: "/Barcode", icon: <LuScanBarcode size={15} />, label: "Barcode Generator" },
-    { path: "/Label", icon: <BsCardText size={15} />, label: "Label Generator" },
-    { path: "/DDC", icon: <FiGrid size={15} />, label: "DDC View" },
-    { path: "/MARC", icon: <TbBookDownload size={15} />, label: "MARC" },
-    // { path: "/MARC/Import", icon: <FiBookOpen size={15} />, label: "MARC Import" },
-    // { path: "/MARC/Import/Batches", icon: <FiBookOpen size={15} />, label: "Import Batches" },
-    // { path: "/MARC/Import/Review", icon: <FiBookOpen size={15} />, label: "Review Records" },
-    { path: "/LibraryVerify", icon: <MdVerified size={15} />, label: "Verify Library" },
-    { path: "/Profile", icon: <FiUser size={15} />, label: "Profile" },
-    { path: "/Settings", icon: <FiSettings size={15} />, label: "Settings" },
+    { path: "/Dashboard", icon: <FiHome size={15} />, labelKey: "dashboard" },
+    { path: "/EnglishBooks", icon: <FiBook size={15} />, labelKey: "englishBooks" },
+    { path: "/MyanmarBooks", icon: <FiBook size={15} />, labelKey: "myanmarBooks" },
+    { path: "/Barcode", icon: <LuScanBarcode size={15} />, labelKey: "barcodeGenerator" },
+    { path: "/Label", icon: <BsCardText size={15} />, labelKey: "labelGenerator" },
+    { path: "/DDC", icon: <FiGrid size={15} />, labelKey: "ddcView" },
+    { path: "/BookReport", icon: <FiBookOpen size={15} />, labelKey: "bookReport" },
+    { path: "/MARC", icon: <TbBookDownload size={15} />, labelKey: "marc" },
+    { path: "/LibraryVerify", icon: <MdVerified size={15} />, labelKey: "verifyLibrary" },
+    { path: "/Profile", icon: <FiUser size={15} />, labelKey: "profile" },
+    { path: "/Members", icon: <FiUsers size={15} />, labelKey: "members" },
+    { path: "/Settings", icon: <FiSettings size={15} />, labelKey: "settings" },
   ];
-  const menuItems = [
-    ...baseItems,
-    ...(user?.role === 'SuperAdmin'
-      ? [{ path: "/Admin/Registrations", icon: <FiBookOpen size={15} />, label: "Admin" }]
-      : []),
-  ];
+
+  const menuItems = useMemo(() => {
+    const adminItem = user?.role === "SuperAdmin"
+      ? [{ path: "/Admin/Registrations", icon: <FiBookOpen size={15} />, labelKey: "admin" }]
+      : [];
+    return [...baseItems, ...adminItem];
+  }, [user?.role]);
+
+  const translatedMenuItems = useMemo(() => {
+    const dictionary = sidebarTranslations[language] || sidebarTranslations.en;
+    return menuItems.map((item) => ({ ...item, label: dictionary[item.labelKey] || item.labelKey }));
+  }, [menuItems, language]);
 
   const handleLogout = async () => {
     try {
@@ -79,7 +122,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
           <div className="flex-1 overflow-y-auto custom-scrollbar text-sm font-medium">
             <nav className="mt-1 px-2">
-              {menuItems.map((item) => (
+              {translatedMenuItems.map((item) => (
                 <Link key={item.path}
                   to={item.path}
                   onClick={() => setIsOpen(false)}
@@ -94,13 +137,11 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
           <div className="p-4 border-t border-gray-500">
             <button
-              onClick={() => {
-                handleLogout();
-              }}
+              onClick={handleLogout}
               className="flex items-center text-sm font-medium w-full px-4 py-2 text-white hover:bg-white hover:text-[#2E6BAA] rounded-lg transition-colors duration-200"
             >
               <FiLogOut size={15} className="mr-3" />
-              <span>Logout</span>
+              <span>{(sidebarTranslations[language] || sidebarTranslations.en).logout}</span>
             </button>
           </div>
         </div>

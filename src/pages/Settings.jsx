@@ -5,11 +5,12 @@ import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 import AdminSidebar from '../components/admin/AdminSidebar';
 import AdminNavbar from '../components/admin/AdminNavbar';
-import { useAuth } from '../context/AuthProvider.jsx';
+import { useAuth, useLanguage } from '../context/AuthProvider.jsx';
 
 const Settings = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { user } = useAuth();
+  const { language, toggleLanguage } = useLanguage();
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -30,6 +31,26 @@ const Settings = () => {
   const [visSuccess, setVisSuccess] = useState(null);
   const [visFetchError, setVisFetchError] = useState(false);
 
+  const t = language === 'mm'
+    ? {
+        pageTitle: 'ပြင်ဆင်ရန်များ', settings: 'ပြင်ဆင်ရန်များ', language: 'ဘာသာစကား', languageDesc: 'မျှဝေထားသော component များအတွက် UI ဘာသာစကား ရွေးချယ်ပါ။',
+        current: 'လက်ရှိ', switchTo: 'ပြောင်းမည်', english: 'English', myanmar: 'Myanmar',
+        twoFA: 'Email ဖြင့်အသုံးပြုနိုင်သော 2FA လုံခြုံရေး', twoFADesc: 'သင့်အကောင့်လုံခြုံရေးအတွက် 2FA ကိုအသုံးပြုပါ။', on : 'အသုံးပြုထားသည်', off : 'ပိတ်ထားသည်',
+        visibility: 'စာကြည့်တိုက် မြင်နိုင်မှု', visibilityDesc: 'သင့်စာကြည့်တိုက်ပရိုဖိုင်ကို public user များမြင်နိုင်မည့်အခြေအနေကိုထိန်းချုပ်ပါ။',
+        status: 'အခြေအနေ', loading: 'လုပ်ဆောင်နေသည်...', error: 'အမှား',
+        changePassword: 'စကားဝှက် ပြောင်းရန်', currentPassword: 'လက်ရှိစကားဝှက်', newPassword: 'စကားဝှက်အသစ်', confirmPassword: 'စကားဝှက်အသစ် အတည်ပြုရန်',
+        updating: 'ပြင်ဆင်နေသည်...', updatePassword: 'စကားဝှက် ပြောင်းမည်'
+      }
+    : {
+        pageTitle: 'Settings', settings: 'Settings', language: 'Language', languageDesc: 'Choose your preferred UI language for shared components.',
+        current: 'Current', switchTo: 'Switch to', english: 'English', myanmar: 'Myanmar',
+        twoFA: 'Two-Factor Authentication (2FA - Email)', twoFADesc: 'Use 2FA to add an extra layer of security to your account.', on : 'ON', off : 'OFF',
+        visibility: 'Library Visibility', visibilityDesc: 'Control whether your library profile is visible to public users.',
+        status: 'Status', loading: 'Loading...', error: 'Error',
+        changePassword: 'Change Password', currentPassword: 'Current Password', newPassword: 'New Password', confirmPassword: 'Confirm New Password',
+        updating: 'Updating...', updatePassword: 'Update Password'
+      };
+
   const fetchTwoFA = async () => {
     setTwoFALoading(true);
     try {
@@ -46,10 +67,10 @@ const Settings = () => {
   };
 
   useEffect(() => {
-    document.title = "Settings"
+    document.title = t.pageTitle
     fetchTwoFA();
     fetchVisibility();
-  }, []);
+  }, [t.pageTitle]);
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
@@ -188,21 +209,35 @@ const Settings = () => {
       )}
       <div className="flex-1 lg:ml-64 mt-16 transition-all duration-300 overflow-y-auto">
         <div className="p-4 lg:px-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Settings</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">{t.settings}</h1>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-white rounded-xl p-6 shadow space-y-5">
               <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-2">Two-Factor Authentication (2FA - Email)</h2>
-                <p className="text-xs text-gray-600 mb-3">Use 2FA to add an extra layer of security to your account.</p>
+                <h2 className="text-lg font-semibold text-gray-900 mb-2">{t.language}</h2>
+                <p className="text-xs text-gray-600 mb-3">{t.languageDesc}</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-700">{t.current}: <strong>{language === 'mm' ? t.myanmar : t.english}</strong></span>
+                  <button
+                    onClick={toggleLanguage}
+                    className="px-3 py-2 text-sm rounded-lg border border-gray-300 hover:bg-gray-50"
+                  >
+                    {language === 'en' ? `${t.switchTo} ${t.myanmar}` : `${t.english} သို့ ${t.switchTo}`}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900 mb-2">{t.twoFA}</h2>
+                <p className="text-xs text-gray-600 mb-3">{t.twoFADesc}</p>
 
                 <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-700">Status: {twoFALoading ? (
-                        <span className="text-gray-600 italic">Loading...</span>
+                    <span className="text-sm text-gray-700">{t.status}: {twoFALoading ? (
+                        <span className="text-gray-600 italic">{t.loading}</span>
                         ) : twoFAFetchError ? (
-                          <span className="text-red-700">Error</span>
+                          <span className="text-red-700">{t.error}</span>
                         ) : (
-                          <strong className={`${twoFAEnabled ? 'text-green-700' : 'text-red-700'}`}>{twoFAEnabled ? 'ON' : 'OFF'}</strong>
+                          <strong className={`${twoFAEnabled ? 'text-green-700' : 'text-red-700'}`}>{twoFAEnabled ? t.on : t.off}</strong>
                         )}
                     </span>
                   <div className="flex items-center">
@@ -232,13 +267,13 @@ const Settings = () => {
 
               {user?.role !== 'SuperAdmin' && 
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900 mb-2">Library Visibility</h2>
-                  <p className="text-xs text-gray-600 mb-3">Control whether your library profile is visible to public users.</p>
+                  <h2 className="text-lg font-semibold text-gray-900 mb-2">{t.visibility}</h2>
+                  <p className="text-xs text-gray-600 mb-3">{t.visibilityDesc}</p>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-700">Status: {visLoading ? (
-                          <span className="text-gray-600 italic">Loading...</span>
+                    <span className="text-sm text-gray-700">{t.status}: {visLoading ? (
+                          <span className="text-gray-600 italic">{t.loading}</span>
                           ) : visFetchError ? (
-                            <span className="text-red-700">Error</span>
+                            <span className="text-red-700">{t.error}</span>
                           ) : (
                             <strong className={`${libraryVisibility === 'Public' ? 'text-green-700' : 'text-red-700'}`}>{libraryVisibility}</strong>
                           )}
@@ -266,7 +301,7 @@ const Settings = () => {
             </div>
             
             <div className="bg-white rounded-xl p-6 shadow">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Change Password</h2>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">{t.changePassword}</h2>
               {pwMessage && (
                 <div className={`mb-3 rounded-xl px-4 py-3 text-sm ${pwSuccess ? 'bg-green-50 text-green-700 ring-1 ring-green-200' : 'bg-red-50 text-red-700 ring-1 ring-red-200'}`}>
                   {pwMessage}
@@ -274,7 +309,7 @@ const Settings = () => {
               )}
               <form onSubmit={handleChangePassword} noValidate className="space-y-4">
                 <div>
-                  <label className="text-sm text-gray-700 mb-1 block">Current Password</label>
+                  <label className="text-sm text-gray-700 mb-1 block">{t.currentPassword}</label>
                   <input
                     type="password"
                     value={currentPassword}
@@ -283,7 +318,7 @@ const Settings = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-sm text-gray-700 mb-1 block">New Password</label>
+                  <label className="text-sm text-gray-700 mb-1 block">{t.newPassword}</label>
                   <input
                     type="password"
                     value={newPassword}
@@ -292,7 +327,7 @@ const Settings = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-sm text-gray-700 mb-1 block">Confirm New Password</label>
+                  <label className="text-sm text-gray-700 mb-1 block">{t.confirmPassword}</label>
                   <input
                     type="password"
                     value={confirmPassword}
@@ -311,10 +346,10 @@ const Settings = () => {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0a12 12 0 100 24v-4a8 8 0 01-8-8z"></path>
                       </svg>
-                      <span>Updating...</span>
+                      <span>{t.updating}</span>
                     </>
                   ) : (
-                    'Update Password'
+                    t.updatePassword
                   )}
                 </button>
               </form>

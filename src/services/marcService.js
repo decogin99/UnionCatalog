@@ -3,7 +3,7 @@ import api from "../axios.config";
 export const marcService = {
   uploadBatch: async (file) => {
     const fd = new FormData();
-    fd.append('file', file);
+    fd.append('MarcFile', file, file?.name || 'upload.mrc');
     const res = await api.post('Library/marc-import', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
     return res;
   },

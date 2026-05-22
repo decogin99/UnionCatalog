@@ -6,11 +6,22 @@ export default function BookCopies({
   open = false,
   book = null,
   showAdminActions = false,
+  labels = {},
   onClose,
   onCopiesChanged
 }) {
   const location = useLocation();
-  const bookType = location.pathname.includes('English') ? 'English' : 'Myanmar';
+  const bookType = location.pathname.startsWith('/EnglishBooks')
+    ? 'English'
+    : 'Myanmar';
+  const t = {
+    title: 'Copies', fallbackBook: 'Book', close: 'Close',
+    accessionNo: 'Accession No', barcodeNo: 'Barcode No', callNo: 'Call No',
+    actions: 'Actions', noCopiesFound: 'No copies found',
+    save: 'Save', saving: 'Saving...', edit: 'Edit', delete: 'Delete', cancel: 'Cancel',
+    adding: 'Adding...', addCopy: 'Add Copy',
+    ...labels,
+  };
   const [copies, setCopies] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -147,8 +158,8 @@ export default function BookCopies({
       <div className="absolute inset-0 bg-black/40" onClick={onClose}></div>
       <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-4xl p-6 ring-1 ring-gray-100">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold text-gray-800">Copies • {book?.title || 'Book'}</h2>
-          <button onClick={onClose} className="px-2 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200">Close</button>
+          <h2 className="text-lg font-semibold text-gray-800">{t.title} • {book?.title || t.fallbackBook}</h2>
+          <button onClick={onClose} className="px-2 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200">{t.close}</button>
         </div>
 
         {(addError || delError || editError) && (
@@ -158,12 +169,12 @@ export default function BookCopies({
           <table className="min-w-full text-sm">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-3 py-2 text-left font-semibold text-gray-700">Accession No</th>
-                <th className="px-3 py-2 text-left font-semibold text-gray-700">Barcode No</th>
-                <th className="px-3 py-2 text-left font-semibold text-gray-700">Call No</th>
+                <th className="px-3 py-2 text-left font-semibold text-gray-700">{t.accessionNo}</th>
+                <th className="px-3 py-2 text-left font-semibold text-gray-700">{t.barcodeNo}</th>
+                <th className="px-3 py-2 text-left font-semibold text-gray-700">{t.callNo}</th>
                 {/* <th className="px-3 py-2 text-left font-semibold text-gray-700">Status</th> */}
                 {showAdminActions && (
-                  <th className="px-3 py-2 text-right font-semibold text-gray-700">Actions</th>
+                  <th className="px-3 py-2 text-right font-semibold text-gray-700">{t.actions}</th>
                 )}
               </tr>
             </thead>
@@ -179,7 +190,7 @@ export default function BookCopies({
                   </td>
                 </tr>
               ) : copies.length === 0 ? (
-                <tr><td colSpan={showAdminActions ? 5 : 4} className="px-3 py-2 text-gray-600">No copies found</td></tr>
+                <tr><td colSpan={showAdminActions ? 5 : 4} className="px-3 py-2 text-gray-600">{t.noCopiesFound}</td></tr>
               ) : (
                 copies.map((c, i) => {
                   const cid = c.bookCopyId || c.BookCopyId;
@@ -206,12 +217,12 @@ export default function BookCopies({
                         <td className="px-2 py-2 text-right">
                           {editing ? (
                             <>
-                              <button onClick={() => handleSaveEdit(book, c)} disabled={editSubmitting} className={`px-2 py-1 text-xs rounded-md border border-green-600 text-green-600 hover:bg-green-600 hover:text-white mr-1 ${editSubmitting ? 'opacity-60' : ''}`}>{editSubmitting ? 'Saving...' : 'Save'}</button>
-                              <button onClick={handleCancelEdit} disabled={editSubmitting} className="px-2 py-1 text-xs rounded-md border border-gray-400 text-gray-700 hover:bg-gray-100">Cancel</button>
+                              <button onClick={() => handleSaveEdit(book, c)} disabled={editSubmitting} className={`px-2 py-1 text-xs rounded-md border border-green-600 text-green-600 hover:bg-green-600 hover:text-white mr-1 ${editSubmitting ? 'opacity-60' : ''}`}>{editSubmitting ? t.saving : t.save}</button>
+                              <button onClick={handleCancelEdit} disabled={editSubmitting} className="px-2 py-1 text-xs rounded-md border border-gray-400 text-gray-700 hover:bg-gray-100">{t.cancel}</button>
                             </>
                           ) : (
                             <>
-                              <button onClick={() => handleEditCopy(book, c)} className="px-2 py-1 text-xs rounded-md border border-[#2E6BAA] text-[#2E6BAA] hover:bg-[#2E6BAA] hover:text-white mr-1">Edit</button>
+                              <button onClick={() => handleEditCopy(book, c)} className="px-2 py-1 text-xs rounded-md border border-[#2E6BAA] text-[#2E6BAA] hover:bg-[#2E6BAA] hover:text-white mr-1">{t.edit}</button>
                               <button onClick={() => handleDeleteCopy(book, c)} disabled={delSubmittingId === cid} className={`relative px-2 py-1 text-xs rounded-md border border-red-600 text-red-600 hover:bg-red-600 hover:text-white ${delSubmittingId === cid ? 'opacity-60' : ''}`}>
                                 {delSubmittingId === cid && (
                                   <span className="absolute inset-0 flex items-center justify-center">
@@ -221,7 +232,7 @@ export default function BookCopies({
                                     </svg>
                                   </span>
                                 )}
-                                <span className={delSubmittingId === cid ? 'opacity-0' : ''}>Delete</span>
+                                <span className={delSubmittingId === cid ? 'opacity-0' : ''}>{t.delete}</span>
                               </button>
                             </>
                           )}
@@ -247,7 +258,7 @@ export default function BookCopies({
               disabled={addSubmitting}
               className={`px-3 py-2 rounded-md bg-[#2E6BAA] text-white hover:bg-[#1B4B8A] ${addSubmitting ? 'opacity-60' : ''}`}
             >
-              {addSubmitting ? 'Adding...' : 'Add Copy'}
+              {addSubmitting ? t.adding : t.addCopy}
             </button>
           </div>
         )}

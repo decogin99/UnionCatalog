@@ -11,7 +11,9 @@ const BookDetail = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const bookType = location.pathname.includes('English') ? 'English' : 'Myanmar';
+  const bookType = location.pathname.startsWith('/EnglishBooks')
+    ? 'English'
+    : 'Myanmar';
   const imageBase = import.meta.env.VITE_IMAGE_BASE_URL || '';
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -26,71 +28,73 @@ const BookDetail = () => {
   const [copiesOpen, setCopiesOpen] = useState(false);
   const [selectedBook, setSelectedBook] = useState(null);
 
-  const handleRetry = async () => {
-    setRetrying(true);
-    await fetch();
-    setRetrying(false);
-  };
 
   useEffect(() => {
     document.title = `${bookType} Book Detail`;
     localStorage.setItem('Books:lastDest', 'detail');
   }, [bookType]);
 
-  useEffect(() => {
-    const fetch = async () => {
-      setError('');
-      setIsLoading(true);
-      try {
-        const sp = new URLSearchParams(location.search);
-        const res = await bookService.getBookDetails(bookId, bookType, sp.get('publicId'));
-        if (res?.success) {
+  const fetchBookDetails = async () => {
+    setError('');
+    setIsLoading(true);
+    try {
+      const sp = new URLSearchParams(location.search);
+      const res = await bookService.getBookDetails(bookId, bookType, sp.get('publicId'));
+      if (res?.success) {
 
-          const d = res?.data?.result ?? res?.data ?? {};
-          const coverFile = d.BookCover ?? d.bookCover ?? '';
-          const mapped = {
-            bookId: d.BookId ?? d.bookId ?? bookId,
-            isbn: d.ISBN ?? d.isbn ?? '',
-            title: d.Title ?? d.title ?? '',
-            subTitle: d.SubTitle ?? d.subTitle ?? '',
-            initial: d.Initial ?? d.initial ?? '',
-            author: d.Author ?? d.author ?? '',
-            edition: d.Edition ?? d.edition ?? '',
-            publisher: d.Publisher ?? d.publisher ?? '',
-            publishedYear: d.PublishedYear ?? d.publishedYear ?? '',
-            numberOfPages: d.NumberOfPages ?? d.numberOfPages ?? '',
-            description: d.Description ?? d.description ?? '',
-            category: d.Category ?? d.category ?? '',
-            subjectHeadings: d.SubjectHeadings ?? d.subjectHeadings ?? '',
-            classNo: d.ClassNo ?? d.classNo ?? '',
-            translator: d.Translator ?? d.translator ?? '',
-            editor: d.Editor ?? d.editor ?? '',
-            noOfCopies: d.NoOfCopies ?? d.noOfCopies ?? '',
-            place: d.Place ?? d.place ?? '',
-            pagination: d.Pagination ?? d.pagination ?? '',
-            illustration: d.Illustration ?? d.illustration ?? '',
-            size: d.Size ?? d.size ?? '',
-            SOR: d.SOR ?? d.sor ?? '',
-            price: d.Price ?? d.price ?? '',
-            summary: d.Summary ?? d.summary ?? '',
-            remarks: d.Remarks ?? d.remarks ?? '',
-            registrationDate: d.RegistrationDate ?? d.registrationDate ?? '',
-            controlAction: !!(d.ControlAction ?? d.controlAction ?? false),
-            totalCopies: d.TotalCopies ?? d.totalCopies ?? '',
-            cover: coverFile ? `${imageBase}libraryBookCovers/${bookType === 'English' ? 'englishBooks' : 'myanmarBooks'}/${coverFile}` : '',
-          };
-          setBook(mapped);
-        } else {
-          setError(res?.message || 'Failed to load book details');
-        }
-      } catch (err) {
-        setError(err?.message || 'Failed to load book details');
-      } finally {
-        setIsLoading(false);
+        const d = res?.data?.result ?? res?.data ?? {};
+        const coverFile = d.BookCover ?? d.bookCover ?? '';
+        const mapped = {
+          bookId: d.BookId ?? d.bookId ?? bookId,
+          isbn: d.ISBN ?? d.isbn ?? '',
+          title: d.Title ?? d.title ?? '',
+          subTitle: d.SubTitle ?? d.subTitle ?? '',
+          initial: d.Initial ?? d.initial ?? '',
+          author: d.Author ?? d.author ?? '',
+          edition: d.Edition ?? d.edition ?? '',
+          publisher: d.Publisher ?? d.publisher ?? '',
+          publishedYear: d.PublishedYear ?? d.publishedYear ?? '',
+          numberOfPages: d.NumberOfPages ?? d.numberOfPages ?? '',
+          description: d.Description ?? d.description ?? '',
+          category: d.Category ?? d.category ?? '',
+          subjectHeadings: d.SubjectHeadings ?? d.subjectHeadings ?? '',
+          classNo: d.ClassNo ?? d.classNo ?? '',
+          translator: d.Translator ?? d.translator ?? '',
+          editor: d.Editor ?? d.editor ?? '',
+          noOfCopies: d.NoOfCopies ?? d.noOfCopies ?? '',
+          place: d.Place ?? d.place ?? '',
+          pagination: d.Pagination ?? d.pagination ?? '',
+          illustration: d.Illustration ?? d.illustration ?? '',
+          size: d.Size ?? d.size ?? '',
+          SOR: d.SOR ?? d.sor ?? '',
+          price: d.Price ?? d.price ?? '',
+          summary: d.Summary ?? d.summary ?? '',
+          remarks: d.Remarks ?? d.remarks ?? '',
+          registrationDate: d.RegistrationDate ?? d.registrationDate ?? '',
+          controlAction: !!(d.ControlAction ?? d.controlAction ?? false),
+          totalCopies: d.TotalCopies ?? d.totalCopies ?? '',
+          cover: coverFile ? `${imageBase}libraryBookCovers/${bookType === 'English' ? 'englishBooks' : 'myanmarBooks'}/${coverFile}` : '',
+        };
+        setBook(mapped);
+      } else {
+        setError(res?.message || 'Failed to load book details');
       }
-    };
-    fetch();
+    } catch (err) {
+      setError(err?.message || 'Failed to load book details');
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    fetchBookDetails();
   }, [bookId, bookType, imageBase]);
+
+  const handleRetry = async () => {
+    setRetrying(true);
+    await fetchBookDetails();
+    setRetrying(false);
+  };
 
   const goBack = () => {
     const returnPath = localStorage.getItem('BookDetail:returnPath');
@@ -105,10 +109,10 @@ const BookDetail = () => {
   const openDelete = () => { setDeleteOpen(true); };
   const closeDelete = () => { setDeleteOpen(false); };
   const confirmDelete = async () => {
-    if (!book?.id || deleteSubmitting) { closeDelete(); return; }
+    if (!book?.bookId || deleteSubmitting) { closeDelete(); return; }
     setDeleteSubmitting(true);
     try {
-      const res = await bookService.deleteBook(book.id, bookType);
+      const res = await bookService.deleteBook(book.bookId, bookType);
       if (res?.success) { closeDelete(); goBack(); }
     } catch (err) {
       setError(err?.message || 'Failed to delete book');
@@ -221,20 +225,18 @@ const BookDetail = () => {
                     <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap">{book.remarks}</p>
                   </div>
                 )}
-                {book.controlAction && (
-                  <div className="mt-4">
-                    <div className="text-xs font-semibold text-[#2E6BAA]">Total Copies</div>
-                    <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap">
-                      {book.totalCopies}
-                      <span onClick={() => openCopies(book)} className="ml-1 cursor-pointer text-[#2E6BAA] hover:text-[#1B4B8A]">(View)</span>  
-                    </p>
-                  </div>
-                )}
+                <div className="mt-4">
+                  <div className="text-xs font-semibold text-[#2E6BAA]">Total Copies</div>
+                  <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap">
+                    {book.totalCopies}
+                    {book.controlAction && <span onClick={() => openCopies(book)} className="ml-1 cursor-pointer text-[#2E6BAA] hover:text-[#1B4B8A]">(View)</span>}  
+                  </p>
+                </div>
 
                 {book.controlAction && (
                   <div className="mt-6 flex justify-end gap-2">
-                    <button onClick={() => openCopies(book)} className="px-4 py-2 text-sm rounded-md border border-[#2E6BAA] text-[#2E6BAA] hover:bg-[#2E6BAA] hover:text-white">View Copies</button>
-                    <button onClick={() => navigate(bookType === 'English' ? `/EnglishBooks/Update/${book.id}` : `/MyanmarBooks/Update/${book.id}`)} className="px-4 py-2 text-sm rounded-md border border-[#2E6BAA] text-[#2E6BAA] hover:bg-[#2E6BAA] hover:text-white">Edit</button>
+                    <button onClick={() => openCopies(book)} className="px-4 py-2 *: text-sm rounded-md border border-[#2E6BAA] text-[#2E6BAA] hover:bg-[#2E6BAA] hover:text-white">View Copies</button>
+                    <button onClick={() => navigate(bookType === 'English' ? `/EnglishBooks/Update/${bookId}` : `/MyanmarBooks/Update/${bookId}`)} className="px-4 py-2 text-sm rounded-md border border-[#2E6BAA] text-[#2E6BAA] hover:bg-[#2E6BAA] hover:text-white">Edit</button>
                     <button onClick={openDelete} className="px-4 py-2 text-sm rounded-md border border-red-600 text-red-600 hover:bg-red-600 hover:text-white">Delete</button>
                   </div>
                 )}

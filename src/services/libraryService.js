@@ -163,5 +163,15 @@ export const libraryService = {
     } catch (error) {
       throw error.response?.data || error.message;
     }
+  },
+
+  getJoinedMembers: async (pageNumber = 1, pageSize = 20) => {
+    try{
+      const res = await api.get('Library/get-joined-members', { params: { pageNumber, pageSize } });
+      return res;
+    }
+    catch(error){
+      throw error.response?.data || error.message;
+    }
   }
 };

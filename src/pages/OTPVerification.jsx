@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiShield } from 'react-icons/fi';
 import { useAuth } from '../context/AuthProvider.jsx';
@@ -10,6 +10,28 @@ const OTPVerification = () => {
     const [isVerifying, setIsVerifying] = useState(false);
     const navigate = useNavigate();
     const { setUser } = useAuth();
+
+    const [remainingSec, setRemainingSec] = useState(0);
+    const [isResending, setIsResending] = useState(false);
+    const [info, setInfo] = useState('');
+
+    useEffect(() => {
+      const key = 'otpExpiryTs';
+      const tick = () => {
+        const ts = Number(sessionStorage.getItem(key) || 0);
+        const left = Math.max(0, Math.floor((ts - Date.now()) / 1000));
+        setRemainingSec(left);
+      };
+      tick();
+      const id = setInterval(tick, 1000);
+      return () => clearInterval(id);
+    }, []);
+
+    const fmtRemain = (s) => {
+      const m = Math.floor(s / 60);
+      const sec = s % 60;
+      return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+    };
 
     const handleChange = (element, index) => {
         if (isNaN(element.value)) return false;
@@ -82,8 +104,17 @@ const OTPVerification = () => {
             const res = await authService.verifyOTP(pendingUsername, otpValue, "Library");
             if (res?.success) {
                 setError('');
-                setUser(prev => ({ ...(prev || {}), email: pendingUsername }));
+                const user = res?.data?.user ?? res?.user ?? {};
+                const libraryName = user.Name ?? user.name ?? '';
+                const libraryAccess = user.Access ?? user.access ?? '';
+                setUser({ 
+                    email: pendingUsername,
+                    libraryName: libraryName || '',
+                    libraryAccess: libraryAccess === "Verifying" ? "Free" : libraryAccess || "Free" 
+                });
                 sessionStorage.removeItem('pendingUsername');
+                sessionStorage.removeItem('pendingRememberMe');
+                sessionStorage.removeItem('otpExpiryTs');
                 navigate('/Dashboard');
             } else {
                 setError(res?.message || 'Invalid OTP code. Please try again.');
@@ -123,7 +154,11 @@ const OTPVerification = () => {
                         </div>
                     )}
 
-                    <div className="rounded-xl px-4 py-3 text-xs bg-yellow-50 text-yellow-700 ring-1 ring-yellow-200 mb-4">OTP will expire after 5 minutes</div>
+                    {(info && remainingSec > 0) && (
+                        <div className="rounded-xl px-4 py-3 text-xs bg-green-50 text-green-700 ring-1 ring-green-200 mb-4">{info}</div>
+                    )}
+
+                    <div className={`rounded-xl px-4 py-3 text-xs ring-1 mb-4 ${remainingSec > 0 ? 'bg-yellow-50 text-yellow-700 ring-yellow-200' : 'bg-red-50 text-red-700 ring-red-200'}`}>{remainingSec > 0 ? `Code expires in ${fmtRemain(remainingSec)}` : (!isVerifying && 'Code expired. You can request a new code.')}</div>
 
                     <div className="flex justify-center gap-2 mb-6">
                         {otp.map((digit, index) => (
@@ -161,18 +196,44 @@ const OTPVerification = () => {
                     <div className="text-center mt-4">
                         <button
                             type="button"
-                            className="text-[#2E6BAA] hover:underline font-medium"
-                            onClick={() => {
-                                setOtp(['', '', '', '', '', '']);
+                            disabled={remainingSec > 0 || isResending}
+                            className="text-[#2E6BAA] hover:underline font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                            onClick={async () => {
+                                if (remainingSec > 0 || isResending) return;
                                 setError('');
-                                // Focus first input
-                                const firstInput = document.querySelector('input');
-                                if (firstInput) {
-                                    firstInput.focus();
+                                setInfo('');
+                                const username = sessionStorage.getItem('pendingUsername') || '';
+                                if (!username) { setError('No pending username found. Please login again.'); return; }
+                                setIsResending(true);
+                                try {
+                                  const r = await authService.resendOTP(username, 'Library');
+                                  if (r?.success) {
+                                    setInfo(r?.message || 'A new OTP code has been sent.');
+                                    setOtp(['', '', '', '', '', '']);
+                                    const newExpiry = Date.now() + 5 * 60 * 1000;
+                                    sessionStorage.setItem('otpExpiryTs', String(newExpiry));
+                                    setRemainingSec(300);
+                                    const firstInput = document.querySelector('input');
+                                    if (firstInput) { firstInput.focus(); }
+                                  } else {
+                                    setError(r?.message || 'Failed to resend OTP.');
+                                  }
+                                } catch (e) {
+                                  setError(e?.message || 'Failed to resend OTP.');
+                                } finally {
+                                  setIsResending(false);
                                 }
                             }}
                         >
-                            Resend Code
+                            {isResending ? (
+                              <span className="inline-flex items-center gap-2">
+                                <svg className="animate-spin h-4 w-4 text-[#2E6BAA]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0a12 12 0 100 24v-4a8 8 0 01-8-8z"></path>
+                                </svg>
+                                Resending...
+                              </span>
+                            ) : 'Resend Code'}
                         </button>
                     </div>
                 </form>

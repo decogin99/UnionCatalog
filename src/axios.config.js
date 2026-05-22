@@ -15,7 +15,7 @@ export const axiosInstance = axios.create({
  * @param {number} timeout - Timeout in milliseconds
  * @returns {Promise} - The API response or error
  */
-export const makeApiRequest = async (apiCall, timeout = 20000) => {
+export const makeApiRequest = async (apiCall, timeout = 1000000) => {
   return Promise.race([
     apiCall,
     new Promise((_, reject) =>
@@ -40,8 +40,8 @@ export const handleNetworkError = (error) => {
     console.error("No internet connection.");
     return "No internet connection.";
   } else if (error.code === "ERR_NETWORK") {
-    console.error("Cannot reach the server.");
-    return "Cannot reach the server.";
+    console.error("Please check your connection and try again.");
+    return "Please check your connection and try again.";
   } else {
     console.error("An unexpected error occurred:", error);
     return error.response?.data?.message || "An unexpected error occurred.";
@@ -60,6 +60,8 @@ export const handleApiRequest = async (apiCallFn) => {
     if (response?.data) {
       return {
         success: true,
+        status: response.status,
+        statusText: response.statusText,
         data: response.data.data || response.data,
         message: response.data.message || "Operation successful",
       };
